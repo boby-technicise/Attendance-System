@@ -285,7 +285,7 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <h4 class="mb-0 d-flex align-items-center">
-                <img src="{% static 'images/techniciselogo.png' %}" alt="Technicise Logo" class="me-3" style="height: 50px; width: 50px; object-fit: contain; filter: drop-shadow(0 0 8px rgba(99,102,241,0.5));">
+                <img src="{% static 'images/techniciselogo.png' %}" alt="Technicise Logo" class="me-3" style="height: 54px; width: 54px; object-fit: contain;">
                 <span style="font-weight: 800; letter-spacing: 1px; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">TECHNICISE</span>
             </h4>
         </div>
@@ -337,6 +337,12 @@
             </span>
             {% endif %}
             <button class="icon-btn"><i class="far fa-bell"></i></button>
+            <form action="{% url 'logout' %}" method="post" class="d-inline">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-sm btn-glass text-danger px-3 py-2 fw-medium rounded-3" title="Sign Out">
+                    <i class="fas fa-sign-out-alt me-1"></i> Logout
+                </button>
+            </form>
             <div class="dropdown">
                 <button class="profile-btn d-flex align-items-center justify-content-center" data-bs-toggle="dropdown" aria-expanded="false" title="{{ user.username }}">
                     {{ user.username|make_list|first|upper }}
