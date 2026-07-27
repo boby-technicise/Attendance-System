@@ -337,12 +337,6 @@
             </span>
             {% endif %}
             <button class="icon-btn"><i class="far fa-bell"></i></button>
-            <form action="{% url 'logout' %}" method="post" class="d-inline">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-sm btn-glass text-danger px-3 py-2 fw-medium rounded-3" title="Sign Out">
-                    <i class="fas fa-sign-out-alt me-1"></i> Logout
-                </button>
-            </form>
             <div class="dropdown">
                 <button class="profile-btn d-flex align-items-center justify-content-center" data-bs-toggle="dropdown" aria-expanded="false" title="{{ user.username }}">
                     {{ user.username|make_list|first|upper }}
@@ -352,7 +346,7 @@
                         <div class="text-white fw-bold" style="font-size: 0.95rem;">
                             {{ user.get_full_name|default:user.username }}
                         </div>
-                        <div class="text-white-50 small">@{{ user.username }}</div>
+                        <div class="text-white-50 small">{{ user.username }}</div>
                         {% if user.is_staff or user.is_superuser %}
                         <span class="badge rounded-pill mt-2 px-2 py-1" style="background:rgba(236,72,153,0.2); border:1px solid rgba(236,72,153,0.4); color:#ec4899; font-size:0.7rem;">
                             <i class="fas fa-user-shield me-1"></i> Admin Account
