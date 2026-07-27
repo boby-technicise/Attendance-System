@@ -4,8 +4,10 @@ from django.contrib.auth.models import User
 class Employee(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     employee_id = models.CharField(max_length=20, unique=True)
-    department = models.CharField(max_length=100)
-    designation = models.CharField(max_length=100)
+    department = models.CharField(max_length=100, blank=True, default='General')
+    designation = models.CharField(max_length=100, blank=True, default='Staff')
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    address = models.TextField(blank=True, null=True)
     monthly_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     
     def __str__(self):

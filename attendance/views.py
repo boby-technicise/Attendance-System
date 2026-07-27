@@ -1,12 +1,27 @@
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView, ListView, View
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.models import User
 from django.utils import timezone
 from .models import Employee, Attendance, LeaveRequest
-from .services import calculate_monthly_salary
+from .services import calculate_monthly_salary, approve_leave, reject_leave
 from django.contrib import messages
 from datetime import datetime, date, timedelta
 import calendar
+
+
+def get_or_create_employee(user):
+    employee = Employee.objects.filter(user=user).first()
+    if not employee:
+        emp_id = f"EMP-{user.id:03d}"
+        if Employee.objects.filter(employee_id=emp_id).exists():
+            emp_id = f"EMP-U{user.id}"
+        employee = Employee.objects.create(
+            user=user,
+            employee_id=emp_id,
+            monthly_salary=50000
+        )
+    return employee
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -14,11 +29,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        try:
-            employee = Employee.objects.get(user=self.request.user)
-            context['employee'] = employee
-        except Employee.DoesNotExist:
-            context['employee'] = None
+        context['employee'] = get_or_create_employee(self.request.user)
         return context
 
 
@@ -49,10 +60,7 @@ class MarkAttendanceView(LoginRequiredMixin, View):
         else:
             next_month, next_year = month + 1, year
 
-        try:
-            employee = Employee.objects.get(user=request.user)
-        except Employee.DoesNotExist:
-            employee = None
+        employee = get_or_create_employee(request.user)
 
         cal = calendar.Calendar(firstweekday=6)  # Sunday first
         month_days = cal.monthdatescalendar(year, month)
@@ -114,35 +122,28 @@ class MarkAttendanceView(LoginRequiredMixin, View):
         today = timezone.now().date()
         action = request.POST.get('action')
 
-        try:
-            employee = Employee.objects.get(user=request.user)
+        employee = get_or_create_employee(request.user)
 
-            if action == 'checkin':
-                Attendance.objects.update_or_create(
-                    employee=employee, date=today,
-                    defaults={'status': 'PRESENT', 'time_in': timezone.now().time()}
-                )
-                messages.success(request, 'Successfully checked in for today!')
+        if action == 'checkin':
+            Attendance.objects.update_or_create(
+                employee=employee, date=today,
+                defaults={'status': 'PRESENT', 'time_in': timezone.now().time()}
+            )
+            messages.success(request, 'Successfully checked in for today!')
 
-            elif action == 'checkout':
-                attendance = Attendance.objects.filter(employee=employee, date=today).first()
-                if attendance and not attendance.time_out:
-                    attendance.time_out = timezone.now().time()
-                    attendance.save()
-                    messages.success(request, 'Successfully checked out. Have a good day!')
-
-        except Employee.DoesNotExist:
-            messages.error(request, 'Employee profile not found.')
+        elif action == 'checkout':
+            attendance = Attendance.objects.filter(employee=employee, date=today).first()
+            if attendance and not attendance.time_out:
+                attendance.time_out = timezone.now().time()
+                attendance.save()
+                messages.success(request, 'Successfully checked out. Have a good day!')
 
         return redirect('mark_attendance')
 
 
 class ApplyLeaveView(LoginRequiredMixin, View):
     def get(self, request):
-        try:
-            employee = Employee.objects.get(user=request.user)
-        except Employee.DoesNotExist:
-            employee = None
+        employee = get_or_create_employee(request.user)
 
         leave_requests = LeaveRequest.objects.filter(employee=employee) if employee else []
         context = {
@@ -153,11 +154,7 @@ class ApplyLeaveView(LoginRequiredMixin, View):
         return render(request, 'attendance/apply_leave.html', context)
 
     def post(self, request):
-        try:
-            employee = Employee.objects.get(user=request.user)
-        except Employee.DoesNotExist:
-            messages.error(request, 'Employee profile not found.')
-            return redirect('apply_leave')
+        employee = get_or_create_employee(request.user)
 
         start_date_str = request.POST.get('start_date')
         end_date_str = request.POST.get('end_date')
@@ -210,10 +207,7 @@ class SalaryView(LoginRequiredMixin, View):
         else:
             next_month, next_year = month + 1, year
 
-        try:
-            employee = Employee.objects.get(user=request.user)
-        except Employee.DoesNotExist:
-            employee = None
+        employee = get_or_create_employee(request.user)
 
         salary_data = None
         monthly_records = []
@@ -261,3 +255,121 @@ class AttendanceReportView(LoginRequiredMixin, ListView):
         context['selected_month'] = self.request.GET.get('month', '')
         context['selected_employee'] = self.request.GET.get('employee', '')
         return context
+
+
+class ManageLeavesView(LoginRequiredMixin, View):
+    def get(self, request):
+        if not (request.user.is_staff or request.user.is_superuser):
+            messages.error(request, 'Access denied. Admin privileges required.')
+            return redirect('dashboard')
+
+        status_filter = request.GET.get('status', 'ALL')
+        
+        queryset = LeaveRequest.objects.select_related('employee', 'employee__user').all()
+        
+        pending_count = queryset.filter(status='PENDING').count()
+        approved_count = queryset.filter(status='APPROVED').count()
+        rejected_count = queryset.filter(status='REJECTED').count()
+        total_count = queryset.count()
+
+        if status_filter != 'ALL':
+            leave_requests = queryset.filter(status=status_filter)
+        else:
+            leave_requests = queryset
+
+        context = {
+            'leave_requests': leave_requests,
+            'status_filter': status_filter,
+            'pending_count': pending_count,
+            'approved_count': approved_count,
+            'rejected_count': rejected_count,
+            'total_count': total_count,
+        }
+        return render(request, 'attendance/manage_leaves.html', context)
+
+    def post(self, request):
+        if not (request.user.is_staff or request.user.is_superuser):
+            messages.error(request, 'Access denied. Admin privileges required.')
+            return redirect('dashboard')
+
+        leave_id = request.POST.get('leave_id')
+        action = request.POST.get('action')
+
+        try:
+            leave_request = LeaveRequest.objects.get(id=leave_id)
+            if action == 'approve':
+                approve_leave(leave_request, reviewed_by=request.user)
+                messages.success(request, f'Leave for {leave_request.employee} approved successfully! Attendance updated.')
+            elif action == 'reject':
+                reject_leave(leave_request, reviewed_by=request.user)
+                messages.warning(request, f'Leave for {leave_request.employee} has been rejected.')
+        except LeaveRequest.DoesNotExist:
+            messages.error(request, 'Leave request not found.')
+
+        status_filter = request.POST.get('status_filter', 'ALL')
+        return redirect(f"/leave/manage/?status={status_filter}")
+
+
+class CreateEmployeeView(LoginRequiredMixin, View):
+    def get(self, request):
+        if not (request.user.is_staff or request.user.is_superuser):
+            messages.error(request, 'Access denied. Admin privileges required.')
+            return redirect('dashboard')
+        return render(request, 'attendance/create_employee.html')
+
+    def post(self, request):
+        if not (request.user.is_staff or request.user.is_superuser):
+            messages.error(request, 'Access denied. Admin privileges required.')
+            return redirect('dashboard')
+
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip().lower()
+        password = request.POST.get('password', '').strip()
+        phone_number = request.POST.get('phone_number', '').strip()
+        address = request.POST.get('address', '').strip()
+        department = request.POST.get('department', 'General').strip()
+        designation = request.POST.get('designation', 'Staff').strip()
+        monthly_salary_str = request.POST.get('monthly_salary', '30000').strip()
+
+        if not (first_name and email and password):
+            messages.error(request, 'First name, email, and password are required.')
+            return render(request, 'attendance/create_employee.html', {'request_data': request.POST})
+
+        if User.objects.filter(username=email).exists() or User.objects.filter(email=email).exists():
+            messages.error(request, f'A user with email/username "{email}" already exists.')
+            return render(request, 'attendance/create_employee.html', {'request_data': request.POST})
+
+        try:
+            monthly_salary = float(monthly_salary_str) if monthly_salary_str else 30000.00
+        except ValueError:
+            monthly_salary = 30000.00
+
+        user = User.objects.create_user(
+            username=email,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name
+        )
+
+        next_id = User.objects.count()
+        emp_id = f"EMP-{next_id:03d}"
+        while Employee.objects.filter(employee_id=emp_id).exists():
+            next_id += 1
+            emp_id = f"EMP-{next_id:03d}"
+
+        Employee.objects.create(
+            user=user,
+            employee_id=emp_id,
+            department=department if department else 'General',
+            designation=designation if designation else 'Staff',
+            phone_number=phone_number,
+            address=address,
+            monthly_salary=monthly_salary
+        )
+
+        messages.success(request, f'Employee account for {first_name} {last_name} ({email}) created successfully! ID: {emp_id}')
+        return redirect('create_employee')
+
+

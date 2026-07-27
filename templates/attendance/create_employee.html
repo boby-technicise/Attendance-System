@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Add New Employee | Premium Admin Portal{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-3 mb-1">
+            <h4 class="text-white fw-bold mb-0" style="letter-spacing:0.5px;">Add New Employee</h4>
+            <span class="badge rounded-pill px-3 py-1" style="background:rgba(236,72,153,0.15); border:1px solid rgba(236,72,153,0.3); color:#ec4899; font-size:0.8rem; font-weight:600;">
+                <i class="fas fa-user-plus me-1"></i> Admin Portal
+            </span>
+        </div>
+        <p class="text-white-50 mb-0" style="font-size:0.95rem;">Create a new employee account so they can log in to the portal</p>
+    </div>
+    <a href="{% url 'manage_leaves' %}" class="btn btn-glass px-4"><i class="fas fa-arrow-left me-2"></i>Back to Approvals</a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <div class="glass-panel rounded-4 p-4 p-md-5">
+            <form method="post">
+                {% csrf_token %}
+                
+                <!-- Personal Information -->
+                <div class="mb-4">
+                    <h6 class="text-white fw-bold mb-3 text-uppercase" style="font-size:0.8rem; letter-spacing:1px; color:#a5b4fc;">
+                        <i class="fas fa-id-card me-2"></i>Personal Details
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">FIRST NAME *</label>
+                            <input type="text" name="first_name" required value="{{ request_data.first_name|default:'' }}" class="form-control" placeholder="e.g. Sarah" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">LAST NAME</label>
+                            <input type="text" name="last_name" value="{{ request_data.last_name|default:'' }}" class="form-control" placeholder="e.g. Connor" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Credentials -->
+                <div class="mb-4 pt-3 border-top" style="border-color:var(--glass-border) !important;">
+                    <h6 class="text-white fw-bold mb-3 text-uppercase" style="font-size:0.8rem; letter-spacing:1px; color:#a5b4fc;">
+                        <i class="fas fa-key me-2"></i>Login Credentials
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">EMAIL ADDRESS (LOGIN USERNAME) *</label>
+                            <input type="email" name="email" required value="{{ request_data.email|default:'' }}" class="form-control" placeholder="e.g. sarah@company.com" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">LOGIN PASSWORD *</label>
+                            <input type="password" name="password" required class="form-control" placeholder="Set a temporary password" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px;">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div class="mb-4 pt-3 border-top" style="border-color:var(--glass-border) !important;">
+                    <h6 class="text-white fw-bold mb-3 text-uppercase" style="font-size:0.8rem; letter-spacing:1px; color:#a5b4fc;">
+                        <i class="fas fa-phone-alt me-2"></i>Contact Details
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">PHONE NUMBER</label>
+                            <input type="text" name="phone_number" value="{{ request_data.phone_number|default:'' }}" class="form-control" placeholder="e.g. +1 555-0199" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px;">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">ADDRESS</label>
+                            <textarea name="address" rows="1" class="form-control" placeholder="e.g. 123 Main St, City, Country" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px; resize:none;">{{ request_data.address|default:'' }}</textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Job & Compensation Details -->
+                <div class="mb-5 pt-3 border-top" style="border-color:var(--glass-border) !important;">
+                    <h6 class="text-white fw-bold mb-3 text-uppercase" style="font-size:0.8rem; letter-spacing:1px; color:#a5b4fc;">
+                        <i class="fas fa-briefcase me-2"></i>Job & Compensation
+                    </h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">DEPARTMENT</label>
+                            <input type="text" name="department" value="{{ request_data.department|default:'Engineering' }}" class="form-control" placeholder="e.g. Engineering" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px;">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">DESIGNATION</label>
+                            <input type="text" name="designation" value="{{ request_data.designation|default:'Software Engineer' }}" class="form-control" placeholder="e.g. Software Engineer" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px;">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">MONTHLY BASE SALARY (₹)</label>
+                            <input type="number" step="0.01" name="monthly_salary" value="{{ request_data.monthly_salary|default:'45000' }}" class="form-control" placeholder="e.g. 45000" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px;">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-3">
+                    <a href="{% url 'manage_leaves' %}" class="btn btn-glass px-4 py-2">Cancel</a>
+                    <button type="submit" class="btn btn-vibrant px-5 py-2 fw-bold">
+                        <i class="fas fa-user-check me-2"></i>Create Employee Account
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

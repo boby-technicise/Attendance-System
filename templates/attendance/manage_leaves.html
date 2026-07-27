@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block title %}Leave Approvals | Premium Payroll Admin{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex align-items-center justify-content-between mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-3 mb-1">
+            <h4 class="text-white fw-bold mb-0" style="letter-spacing:0.5px;">Leave Approvals</h4>
+            <span class="badge rounded-pill px-3 py-1" style="background:rgba(236,72,153,0.15); border:1px solid rgba(236,72,153,0.3); color:#ec4899; font-size:0.8rem; font-weight:600;">
+                <i class="fas fa-shield-alt me-1"></i> Admin Portal
+            </span>
+        </div>
+        <p class="text-white-50 mb-0" style="font-size:0.95rem;">Review, approve, or reject employee leave applications</p>
+    </div>
+    <a href="{% url 'apply_leave' %}" class="btn btn-glass px-4"><i class="fas fa-plus me-2"></i>Apply My Own Leave</a>
+</div>
+
+<!-- Stat Summary Cards -->
+<div class="row g-4 mb-4">
+    <div class="col-md-3">
+        <a href="?status=ALL" class="text-decoration-none">
+            <div class="glass-panel rounded-4 p-4 transition-all {% if status_filter == 'ALL' %}border-primary{% endif %}" style="{% if status_filter == 'ALL' %}background:rgba(99,102,241,0.12); border-color:rgba(99,102,241,0.4);{% endif %}">
+                <p class="text-white-50 fw-medium mb-2 text-uppercase" style="font-size:0.75rem; letter-spacing:1px;">Total Requests</p>
+                <h3 class="fw-bold text-white mb-0">{{ total_count }}</h3>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="?status=PENDING" class="text-decoration-none">
+            <div class="glass-panel rounded-4 p-4 transition-all {% if status_filter == 'PENDING' %}border-warning{% endif %}" style="{% if status_filter == 'PENDING' %}background:rgba(251,191,36,0.12); border-color:rgba(251,191,36,0.4);{% endif %}">
+                <p class="text-white-50 fw-medium mb-2 text-uppercase" style="font-size:0.75rem; letter-spacing:1px;">Pending Approval</p>
+                <h3 class="fw-bold mb-0" style="color:#fbbf24;">{{ pending_count }}</h3>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="?status=APPROVED" class="text-decoration-none">
+            <div class="glass-panel rounded-4 p-4 transition-all {% if status_filter == 'APPROVED' %}border-success{% endif %}" style="{% if status_filter == 'APPROVED' %}background:rgba(52,211,153,0.12); border-color:rgba(52,211,153,0.4);{% endif %}">
+                <p class="text-white-50 fw-medium mb-2 text-uppercase" style="font-size:0.75rem; letter-spacing:1px;">Approved Leaves</p>
+                <h3 class="fw-bold mb-0" style="color:#34d399;">{{ approved_count }}</h3>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-3">
+        <a href="?status=REJECTED" class="text-decoration-none">
+            <div class="glass-panel rounded-4 p-4 transition-all {% if status_filter == 'REJECTED' %}border-danger{% endif %}" style="{% if status_filter == 'REJECTED' %}background:rgba(248,113,113,0.12); border-color:rgba(248,113,113,0.4);{% endif %}">
+                <p class="text-white-50 fw-medium mb-2 text-uppercase" style="font-size:0.75rem; letter-spacing:1px;">Rejected Requests</p>
+                <h3 class="fw-bold mb-0" style="color:#f87171;">{{ rejected_count }}</h3>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Main Table Container -->
+<div class="glass-panel rounded-4 p-4">
+    <!-- Filter Tabs -->
+    <div class="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom" style="border-color:var(--glass-border) !important;">
+        <h6 class="text-white fw-bold mb-0 text-uppercase" style="font-size:0.85rem; letter-spacing:1px;">
+            Leave Applications
+        </h6>
+        <div class="d-flex gap-2">
+            <a href="?status=ALL" class="btn btn-sm {% if status_filter == 'ALL' %}btn-vibrant{% else %}btn-glass{% endif %} px-3" style="font-size:0.85rem;">All ({{ total_count }})</a>
+            <a href="?status=PENDING" class="btn btn-sm {% if status_filter == 'PENDING' %}btn-vibrant{% else %}btn-glass{% endif %} px-3" style="font-size:0.85rem;">Pending ({{ pending_count }})</a>
+            <a href="?status=APPROVED" class="btn btn-sm {% if status_filter == 'APPROVED' %}btn-vibrant{% else %}btn-glass{% endif %} px-3" style="font-size:0.85rem;">Approved ({{ approved_count }})</a>
+            <a href="?status=REJECTED" class="btn btn-sm {% if status_filter == 'REJECTED' %}btn-vibrant{% else %}btn-glass{% endif %} px-3" style="font-size:0.85rem;">Rejected ({{ rejected_count }})</a>
+        </div>
+    </div>
+
+    {% if leave_requests %}
+    <div class="table-responsive">
+        <table class="table table-dark table-borderless align-middle mb-0" style="background: transparent !important; --bs-table-bg: transparent; color: var(--text-main);">
+            <thead>
+                <tr style="border-bottom:1px solid var(--glass-border);">
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">EMPLOYEE</th>
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">TYPE</th>
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">DATE RANGE</th>
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">DURATION</th>
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">REASON</th>
+                    <th class="text-white-50 fw-medium pb-3 text-end" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">ACTION</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for lr in leave_requests %}
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                <td class="py-3" style="background:transparent;">
+                    <div class="d-flex align-items-center">
+                        <div class="rounded-circle d-flex align-items-center justify-content-center me-3 fw-bold text-white shadow-sm" style="width:38px; height:38px; background:var(--gradient-primary); font-size:0.9rem;">
+                            {{ lr.employee.user.username|make_list|first|upper }}
+                        </div>
+                        <div>
+                            <div class="text-white fw-bold" style="font-size:0.95rem;">{{ lr.employee.user.get_full_name|default:lr.employee.user.username }}</div>
+                            <div class="text-white-50 small"><i class="fas fa-id-badge me-1" style="color:#a5b4fc;"></i>{{ lr.employee.employee_id }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="py-3 fw-medium text-white" style="background:transparent;">
+                    {{ lr.get_leave_type_display }}
+                </td>
+                <td class="py-3 text-white-50" style="font-size:0.9rem; background:transparent;">
+                    {{ lr.start_date|date:"d M Y" }}
+                    {% if lr.start_date != lr.end_date %}
+                    <br><span class="text-white-50 small">to {{ lr.end_date|date:"d M Y" }}</span>
+                    {% endif %}
+                </td>
+                <td class="py-3 text-white fw-bold" style="background:transparent;">
+                    {{ lr.duration_days }}
+                </td>
+                <td class="py-3 text-white-50" style="font-size:0.88rem; max-width:220px; background:transparent;">
+                    {{ lr.reason|truncatechars:60 }}
+                </td>
+                <td class="py-3 text-end" style="background:transparent;">
+                    {% if lr.status == 'PENDING' %}
+                    <div class="d-inline-flex gap-2">
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="leave_id" value="{{ lr.id }}">
+                            <input type="hidden" name="action" value="approve">
+                            <input type="hidden" name="status_filter" value="{{ status_filter }}">
+                            <button type="submit" class="btn btn-sm btn-vibrant px-3 py-1 fw-semibold" style="background:linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow:0 4px 12px rgba(16,185,129,0.3);">
+                                <i class="fas fa-check me-1"></i>Approve
+                            </button>
+                        </form>
+                        <form method="post" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="leave_id" value="{{ lr.id }}">
+                            <input type="hidden" name="action" value="reject">
+                            <input type="hidden" name="status_filter" value="{{ status_filter }}">
+                            <button type="submit" class="btn btn-sm btn-glass px-3 py-1 fw-semibold" style="border-color:rgba(248,113,113,0.3); color:#f87171;">
+                                <i class="fas fa-times me-1"></i>Reject
+                            </button>
+                        </form>
+                    </div>
+                    {% elif lr.status == 'APPROVED' %}
+                    <span class="badge rounded-pill px-3 py-2" style="background:rgba(52,211,153,0.1); border:1px solid rgba(52,211,153,0.3); color:#34d399; font-size:0.8rem;">
+                        <i class="fas fa-check-circle me-1"></i>Approved
+                    </span>
+                    {% elif lr.status == 'REJECTED' %}
+                    <span class="badge rounded-pill px-3 py-2" style="background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.3); color:#f87171; font-size:0.8rem;">
+                        <i class="fas fa-times-circle me-1"></i>Rejected
+                    </span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-white-50">
+        <i class="far fa-clipboard fa-3x mb-3 opacity-25"></i>
+        <p class="mb-0">No leave applications found for this filter.</p>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

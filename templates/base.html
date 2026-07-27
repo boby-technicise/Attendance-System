@@ -297,13 +297,26 @@
             <a href="{% url 'mark_attendance' %}" class="{% if request.resolver_match.url_name == 'mark_attendance' or request.resolver_match.url_name == 'apply_leave' %}active{% endif %}">
                 <i class="far fa-calendar-alt"></i> Attendance
             </a>
-            <a href="#" class="">
+
+            {% if user.is_staff or user.is_superuser %}
+            <div class="mt-4 mb-2 px-3 text-uppercase text-white-50 fw-bold" style="font-size: 0.7rem; letter-spacing: 1px;">
+                <i class="fas fa-shield-alt me-1" style="color: #ec4899;"></i> Admin Controls
+            </div>
+            <a href="{% url 'manage_leaves' %}" class="{% if request.resolver_match.url_name == 'manage_leaves' %}active{% endif %}">
+                <i class="fas fa-check-circle" style="color: #34d399;"></i> Leave Approvals
+            </a>
+            <a href="{% url 'create_employee' %}" class="{% if request.resolver_match.url_name == 'create_employee' %}active{% endif %}">
+                <i class="fas fa-user-plus" style="color: #a5b4fc;"></i> Add Employee
+            </a>
+            {% endif %}
+
+            <a href="#" class="mt-3">
                 <i class="fas fa-receipt"></i> Expenses
             </a>
             <a href="#" class="">
                 <i class="far fa-folder-open"></i> Documents
             </a>
-            <a href="#" class="mt-4">
+            <a href="#" class="mt-3">
                 <i class="far fa-life-ring"></i> Support
             </a>
         </div>
@@ -316,17 +329,37 @@
             <i class="fas fa-search"></i>
             <input type="text" placeholder="Search workspace...">
         </div>
-        <div class="top-icons">
+        <div class="top-icons d-flex align-items-center gap-3">
+            {% if user.is_staff or user.is_superuser %}
+            <span class="badge rounded-pill px-3 py-2" style="background:rgba(236,72,153,0.15); border:1px solid rgba(236,72,153,0.3); color:#ec4899; font-size:0.75rem; font-weight:600;">
+                <i class="fas fa-user-shield me-1"></i> Admin & User Mode
+            </span>
+            {% endif %}
             <button class="icon-btn"><i class="far fa-bell"></i></button>
             <div class="dropdown">
-                <button class="profile-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                <button class="profile-btn d-flex align-items-center justify-content-center" data-bs-toggle="dropdown" aria-expanded="false" title="{{ user.username }}">
                     {{ user.username|make_list|first|upper }}
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark glass-panel mt-3 border-0">
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark glass-panel p-3 border-0 shadow-lg" style="min-width: 220px;">
+                    <li class="pb-2 mb-2 border-bottom" style="border-color: var(--glass-border) !important;">
+                        <div class="text-white fw-bold" style="font-size: 0.95rem;">
+                            {{ user.get_full_name|default:user.username }}
+                        </div>
+                        <div class="text-white-50 small">@{{ user.username }}</div>
+                        {% if user.is_staff or user.is_superuser %}
+                        <span class="badge rounded-pill mt-2 px-2 py-1" style="background:rgba(236,72,153,0.2); border:1px solid rgba(236,72,153,0.4); color:#ec4899; font-size:0.7rem;">
+                            <i class="fas fa-user-shield me-1"></i> Admin Account
+                        </span>
+                        {% else %}
+                        <span class="badge rounded-pill mt-2 px-2 py-1" style="background:rgba(52,211,153,0.2); border:1px solid rgba(52,211,153,0.4); color:#34d399; font-size:0.7rem;">
+                            <i class="fas fa-user me-1"></i> Employee Account
+                        </span>
+                        {% endif %}
+                    </li>
                     <li>
                         <form action="{% url 'logout' %}" method="post">
                             {% csrf_token %}
-                            <button type="submit" class="dropdown-item py-2"><i class="fas fa-sign-out-alt me-2"></i>Logout</button>
+                            <button type="submit" class="dropdown-item py-2 text-danger rounded-3"><i class="fas fa-sign-out-alt me-2"></i>Logout</button>
                         </form>
                     </li>
                 </ul>
