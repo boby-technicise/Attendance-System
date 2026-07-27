@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Premium Payroll{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --glass-bg: rgba(15, 23, 42, 0.6);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            --sidebar-active: rgba(99, 102, 241, 0.15);
+            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
+            --gradient-hover: linear-gradient(135deg, #4f46e5 0%, #db2777 100%);
+        }
+        body {
+            /* Deep animated gradient background */
+            background: linear-gradient(-45deg, #020617, #0f172a, #1e1b4b, #0f172a);
+            background-size: 400% 400%;
+            animation: gradientBG 15s ease infinite;
+            color: var(--text-main);
+            font-family: 'Outfit', sans-serif;
+            display: flex;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Glass Utilities */
+        .glass-panel {
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            box-shadow: var(--glass-shadow);
+        }
+
+        /* Top Navbar */
+        .top-navbar {
+            height: 70px;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--glass-border);
+            position: fixed;
+            top: 0;
+            right: 0;
+            left: 280px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 32px;
+            z-index: 1000;
+        }
+        .top-navbar .company-love {
+            color: var(--text-main);
+            font-size: 0.95rem;
+            margin-right: 32px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .search-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 8px 16px;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            width: 300px;
+            margin-right: 24px;
+            transition: all 0.3s ease;
+        }
+        .search-box:focus-within {
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.2);
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .search-box i {
+            color: var(--text-muted);
+            margin-right: 12px;
+        }
+        .search-box input {
+            background: none;
+            border: none;
+            color: white;
+            outline: none;
+            width: 100%;
+            font-size: 0.95rem;
+            font-family: 'Outfit', sans-serif;
+        }
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .top-icons {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+        .top-icons .icon-btn {
+            color: var(--text-muted);
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        .top-icons .icon-btn:hover {
+            color: white;
+        }
+        .profile-btn {
+            background: var(--gradient-primary);
+            color: white;
+            border-radius: 50%;
+            width: 38px;
+            height: 38px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(236, 72, 153, 0.3);
+            transition: transform 0.3s ease;
+        }
+        .profile-btn:hover {
+            transform: scale(1.05);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: rgba(15, 23, 42, 0.4);
+            backdrop-filter: blur(20px);
+            border-right: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            z-index: 1001;
+        }
+        .sidebar-header {
+            height: 70px;
+            border-bottom: 1px solid var(--glass-border);
+            display: flex;
+            align-items: center;
+            padding: 0 28px;
+        }
+        .sidebar-header h4 {
+            font-weight: 800;
+            letter-spacing: 1px;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .sidebar-menu {
+            padding: 24px 16px;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .sidebar-menu a {
+            display: flex;
+            align-items: center;
+            color: var(--text-muted);
+            text-decoration: none;
+            padding: 12px 20px;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .sidebar-menu a:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.03);
+            transform: translateX(4px);
+        }
+        .sidebar-menu a.active {
+            background: var(--sidebar-active);
+            color: white;
+            border: 1px solid rgba(99, 102, 241, 0.2);
+        }
+        .sidebar-menu a.active::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 60%;
+            width: 4px;
+            background: var(--gradient-primary);
+            border-radius: 0 4px 4px 0;
+        }
+        .sidebar-menu a i {
+            width: 24px;
+            margin-right: 12px;
+            font-size: 1.1rem;
+        }
+        .sidebar-menu a.active i {
+            color: #818cf8;
+        }
+
+        /* Main Content */
+        .main-wrapper {
+            margin-left: 280px;
+            margin-top: 70px;
+            padding: 32px 40px;
+            flex-grow: 1;
+            overflow-y: auto;
+            height: calc(100vh - 70px);
+        }
+
+        /* Vibrant Buttons */
+        .btn-vibrant {
+            background: var(--gradient-primary);
+            color: white !important;
+            border: none;
+            border-radius: 10px;
+            padding: 10px 24px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(236, 72, 153, 0.2);
+        }
+        .btn-vibrant:hover {
+            background: var(--gradient-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(236, 72, 153, 0.4);
+        }
+        .btn-vibrant:disabled {
+            background: rgba(255,255,255,0.1);
+            color: var(--text-muted) !important;
+            box-shadow: none;
+            transform: none;
+        }
+        
+        .btn-glass {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid var(--glass-border);
+            color: white;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+        }
+        .btn-glass:hover {
+            background: rgba(255,255,255,0.1);
+            color: white;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(0,0,0,0.1);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.1);
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255,255,255,0.2);
+        }
+    </style>
+</head>
+<body>
+    {% if user.is_authenticated %}
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <h4 class="mb-0 d-flex align-items-center">
+                <i class="fas fa-layer-group me-3 text-white"></i> NEXUS
+            </h4>
+        </div>
+        <div class="sidebar-menu">
+            <a href="{% url 'dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                <i class="far fa-window-maximize"></i> Dashboard
+            </a>
+            <a href="{% url 'salary' %}" class="{% if request.resolver_match.url_name == 'salary' %}active{% endif %}">
+                <i class="fas fa-wallet"></i> My Pay
+            </a>
+            <a href="{% url 'mark_attendance' %}" class="{% if request.resolver_match.url_name == 'mark_attendance' or request.resolver_match.url_name == 'apply_leave' %}active{% endif %}">
+                <i class="far fa-calendar-alt"></i> Attendance
+            </a>
+            <a href="#" class="">
+                <i class="fas fa-receipt"></i> Expenses
+            </a>
+            <a href="#" class="">
+                <i class="far fa-folder-open"></i> Documents
+            </a>
+            <a href="#" class="mt-4">
+                <i class="far fa-life-ring"></i> Support
+            </a>
+        </div>
+    </div>
+
+    <!-- Top Navbar -->
+    <div class="top-navbar">
+        <div class="company-love">Powered by <span style="color: #ec4899; font-weight: 700;">Nexus AI</span></div>
+        <div class="search-box">
+            <i class="fas fa-search"></i>
+            <input type="text" placeholder="Search workspace...">
+        </div>
+        <div class="top-icons">
+            <button class="icon-btn"><i class="far fa-bell"></i></button>
+            <div class="dropdown">
+                <button class="profile-btn" data-bs-toggle="dropdown" aria-expanded="false">
+                    {{ user.username|make_list|first|upper }}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-dark glass-panel mt-3 border-0">
+                    <li>
+                        <form action="{% url 'logout' %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item py-2"><i class="fas fa-sign-out-alt me-2"></i>Logout</button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="main-wrapper {% if not user.is_authenticated %}m-0 w-100 p-4 d-flex justify-content-center align-items-center{% endif %}">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} alert-dismissible fade show glass-panel border-start border-4 {% if message.tags == 'success' %}border-success{% elif message.tags == 'error' %}border-danger{% else %}border-info{% endif %}" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

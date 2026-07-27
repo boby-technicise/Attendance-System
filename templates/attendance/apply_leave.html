@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+
+{% block title %}Apply Leave | Premium Payroll{% endblock %}
+
+{% block content %}
+
+<!-- Header -->
+<div class="d-flex align-items-center mb-5">
+    <div>
+        <h4 class="text-white fw-bold mb-1" style="letter-spacing:0.5px;">Apply for Leave</h4>
+        <p class="text-white-50 mb-0" style="font-size:0.95rem;">Submit a new leave request for admin approval</p>
+    </div>
+    <a href="{% url 'mark_attendance' %}" class="btn btn-glass ms-auto px-4"><i class="fas fa-arrow-left me-2"></i>Back to Attendance</a>
+</div>
+
+<div class="row g-4">
+    <!-- Leave Form -->
+    <div class="col-lg-5">
+        <div class="glass-panel rounded-4 p-4">
+            <h6 class="text-white fw-bold mb-4 text-uppercase" style="letter-spacing:1px; font-size:0.85rem;">New Leave Request</h6>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">LEAVE TYPE</label>
+                    <select name="leave_type" class="form-select" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px;">
+                        {% for code, label in leave_type_choices %}
+                        <option value="{{ code }}" style="background:#0f172a;">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">START DATE</label>
+                    <input type="date" name="start_date" required class="form-control" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; colorscheme:dark;">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">END DATE</label>
+                    <input type="date" name="end_date" required class="form-control" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; colorscheme:dark;">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">REASON</label>
+                    <textarea name="reason" rows="4" required class="form-control" placeholder="Briefly describe the reason for your leave..." style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; resize:none;"></textarea>
+                </div>
+                <button type="submit" class="btn btn-vibrant w-100 py-2 fw-bold">
+                    <i class="fas fa-paper-plane me-2"></i>Submit Leave Request
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Leave History -->
+    <div class="col-lg-7">
+        <div class="glass-panel rounded-4 p-4">
+            <h6 class="text-white fw-bold mb-4 text-uppercase" style="letter-spacing:1px; font-size:0.85rem;">My Leave History</h6>
+
+            {% if leave_requests %}
+            <div class="table-responsive">
+                <table class="table table-dark table-borderless align-middle mb-0" style="background: transparent !important; --bs-table-bg: transparent; color: var(--text-main);">
+                    <thead>
+                        <tr style="border-bottom:1px solid var(--glass-border);">
+                            <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">TYPE</th>
+                            <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">DATES</th>
+                            <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">DAYS</th>
+                            <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for lr in leave_requests %}
+                    <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                        <td class="py-3 fw-medium text-white" style="background:transparent;">{{ lr.get_leave_type_display }}</td>
+                        <td class="py-3 text-white-50" style="font-size:0.9rem; background:transparent;">
+                            {{ lr.start_date|date:"d M" }}
+                            {% if lr.start_date != lr.end_date %} → {{ lr.end_date|date:"d M Y" }}{% else %}, {{ lr.start_date|date:"Y" }}{% endif %}
+                        </td>
+                        <td class="py-3 text-white fw-bold" style="background:transparent;">
+                            {{ lr.duration_days }}
+                        </td>
+                        <td class="py-3" style="background:transparent;">
+                            {% if lr.status == 'APPROVED' %}
+                            <span class="badge rounded-pill px-3 py-2" style="background:rgba(52,211,153,0.1); border:1px solid rgba(52,211,153,0.3); color:#34d399; font-size:0.8rem;">Approved</span>
+                            {% elif lr.status == 'REJECTED' %}
+                            <span class="badge rounded-pill px-3 py-2" style="background:rgba(248,113,113,0.1); border:1px solid rgba(248,113,113,0.3); color:#f87171; font-size:0.8rem;">Rejected</span>
+                            {% else %}
+                            <span class="badge rounded-pill px-3 py-2" style="background:rgba(251,191,36,0.1); border:1px solid rgba(251,191,36,0.3); color:#fbbf24; font-size:0.8rem;">Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-5 text-white-50">
+                <i class="far fa-calendar-times fa-3x mb-3 opacity-25"></i>
+                <p class="mb-0">No leave requests found.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endblock %}

@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<!-- Top Banner -->
+<div class="glass-panel rounded-4 mb-4" style="position: relative; overflow: hidden;">
+    <div style="position: absolute; top: -100px; right: -100px; width: 300px; height: 300px; background: rgba(236, 72, 153, 0.15); filter: blur(50px); border-radius: 50%;"></div>
+    <div class="card-body d-flex justify-content-between align-items-center p-4 p-md-5" style="position: relative; z-index: 1;">
+        <div>
+            <h4 class="text-white fw-bold mb-2" style="letter-spacing: 0.5px;">Today's Attendance</h4>
+            <div class="text-white-50 fw-medium" style="font-size: 1.05rem;"><i class="far fa-calendar me-2" style="color: #f472b6;"></i> {{ today|date:"l, jS F Y" }}</div>
+        </div>
+        <div class="d-flex flex-column align-items-end">
+            <div>
+                {% if has_checked_out %}
+                    <button class="btn btn-glass px-4 py-2 fw-bold" disabled style="opacity: 0.7;">
+                        <i class="fas fa-check-double me-2 text-success"></i> Checked Out
+                    </button>
+                {% elif has_checked_in %}
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="checkout">
+                        <button type="submit" class="btn btn-vibrant px-4 py-2 fw-bold" style="background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%); box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3);">
+                            <i class="fas fa-sign-out-alt me-2"></i> Check Out
+                        </button>
+                    </form>
+                {% else %}
+                    <form method="post" class="d-inline">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="checkin">
+                        <button type="submit" class="btn btn-vibrant px-5 py-2 fw-bold">
+                            <i class="far fa-clock me-2"></i> Check In
+                        </button>
+                    </form>
+                {% endif %}
+                <a href="{% url 'apply_leave' %}" class="btn btn-glass ms-3 px-4 py-2 fw-bold text-white text-decoration-none">
+                    <i class="far fa-calendar-plus me-2"></i>Apply Leave
+                </a>
+            </div>
+            {% if has_checked_out and working_hours %}
+            <div class="text-white mt-3 px-4 py-2 rounded-pill" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); font-size: 0.95rem;">
+                <i class="fas fa-stopwatch me-2" style="color: #a5b4fc;"></i> Total hours: <span class="fw-bold" style="color: #f472b6;">{{ working_hours }}h</span>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Calendar Section -->
+<div class="glass-panel rounded-4 mb-4">
+    <div class="d-flex align-items-center border-bottom pb-0 p-4" style="border-color: var(--glass-border) !important;">
+        <!-- Month controls -->
+        <h5 class="text-white fw-bold mb-0 me-auto">Attendance Log</h5>
+        <div class="d-flex align-items-center pb-3">
+            <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-sm btn-glass text-white"><i class="fas fa-chevron-left"></i></a>
+            <span class="text-white fw-bold mx-4 fs-5" style="letter-spacing: 1px;">{{ month_name }} {{ year }}</span>
+            <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-sm btn-glass text-white me-3"><i class="fas fa-chevron-right"></i></a>
+            <a href="?" class="btn btn-sm btn-vibrant text-white px-3" style="font-size: 0.85rem; padding: 6px 16px; text-decoration: none;">Today</a>
+        </div>
+    </div>
+    
+    <div class="p-4">
+        <div class="calendar-grid">
+            <!-- Header -->
+            <div class="row text-center mb-4">
+                <div class="col text-white-50 fw-semibold text-uppercase" style="font-size: 0.85rem; letter-spacing: 1px;">Sun</div>
+                <div class="col text-white-50 fw-semibold text-uppercase" style="font-size: 0.85rem; letter-spacing: 1px;">Mon</div>
+                <div class="col text-white-50 fw-semibold text-uppercase" style="font-size: 0.85rem; letter-spacing: 1px;">Tue</div>
+                <div class="col text-white-50 fw-semibold text-uppercase" style="font-size: 0.85rem; letter-spacing: 1px;">Wed</div>
+                <div class="col text-white-50 fw-semibold text-uppercase" style="font-size: 0.85rem; letter-spacing: 1px;">Thu</div>
+                <div class="col text-white-50 fw-semibold text-uppercase" style="font-size: 0.85rem; letter-spacing: 1px;">Fri</div>
+                <div class="col text-white-50 fw-semibold text-uppercase" style="font-size: 0.85rem; letter-spacing: 1px;">Sat</div>
+            </div>
+            
+            <!-- Days -->
+            {% for week in calendar_data %}
+            <div class="row text-center mb-3">
+                {% for d in week %}
+                <div class="col d-flex justify-content-center align-items-center" style="height: 70px;">
+                    <div class="d-flex flex-column align-items-center justify-content-center h-100 w-100 rounded-3 transition-all {% if d.is_today %}border{% endif %}" style="{% if d.is_today %}border-color: rgba(236, 72, 153, 0.5) !important; background: rgba(236, 72, 153, 0.1); box-shadow: 0 0 20px rgba(236, 72, 153, 0.15);{% endif %}">
+                        <span class="
+                            {% if not d.is_current_month %}text-white-50 opacity-25
+                            {% else %}text-white
+                            {% endif %}
+                            fw-bold" style="font-size: 1.15rem;">
+                            {{ d.day }}
+                        </span>
+                        
+                        {% if d.status == 'PRESENT' %}
+                        <div class="mt-1 rounded-pill" style="width: 6px; height: 6px; background: #34d399; box-shadow: 0 0 10px #34d399;"></div>
+                        {% elif d.status == 'ABSENT' %}
+                        <div class="mt-1 rounded-pill" style="width: 6px; height: 6px; background: #f87171; box-shadow: 0 0 10px #f87171;"></div>
+                        {% elif d.status == 'LEAVE' %}
+                        <div class="mt-1 rounded-pill" style="width: 6px; height: 6px; background: #fbbf24; box-shadow: 0 0 10px #fbbf24;"></div>
+                        {% else %}
+                        <div class="mt-1" style="height: 6px;"></div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endfor %}
+            
+            <!-- Legend -->
+            <div class="d-flex justify-content-center mt-5 pt-4 border-top" style="border-color: var(--glass-border) !important;">
+                <div class="d-flex align-items-center mx-4">
+                    <div class="rounded-pill me-3" style="width: 8px; height: 8px; background: #34d399; box-shadow: 0 0 10px #34d399;"></div>
+                    <span class="text-white-50 fw-medium" style="font-size: 0.9rem;">Present</span>
+                </div>
+                <div class="d-flex align-items-center mx-4">
+                    <div class="rounded-pill me-3" style="width: 8px; height: 8px; background: #f87171; box-shadow: 0 0 10px #f87171;"></div>
+                    <span class="text-white-50 fw-medium" style="font-size: 0.9rem;">Absent</span>
+                </div>
+                <div class="d-flex align-items-center mx-4">
+                    <div class="rounded-pill me-3" style="width: 8px; height: 8px; background: #fbbf24; box-shadow: 0 0 10px #fbbf24;"></div>
+                    <span class="text-white-50 fw-medium" style="font-size: 0.9rem;">Leave</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Open Requests -->
+{% if leave_requests %}
+<div class="glass-panel rounded-4 p-4 mb-4">
+    <h6 class="text-white fw-bold mb-4 text-uppercase" style="font-size:0.8rem; letter-spacing:1px;">Open Requests</h6>
+    {% for lr in leave_requests %}
+    <div class="d-flex align-items-center justify-content-between py-3" style="border-bottom:1px solid rgba(255,255,255,0.04);">
+        <div class="text-white-50" style="font-size:0.9rem;">
+            You have requested <strong class="text-white">{{ lr.get_leave_type_display }}</strong> from
+            <strong class="text-white">{{ lr.start_date|date:"jS M" }}</strong> to
+            <strong class="text-white">{{ lr.end_date|date:"jS M" }}</strong>
+        </div>
+        {% if lr.status == 'APPROVED' %}
+        <span class="badge rounded-pill px-3 py-2 ms-3" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:#34d399;font-size:0.8rem;white-space:nowrap;">Approved</span>
+        {% elif lr.status == 'REJECTED' %}
+        <span class="badge rounded-pill px-3 py-2 ms-3" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;font-size:0.8rem;white-space:nowrap;">Rejected</span>
+        {% else %}
+        <span class="badge rounded-pill px-3 py-2 ms-3" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:#fbbf24;font-size:0.8rem;white-space:nowrap;">Pending</span>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="navbar-custom d-flex justify-content-between align-items-center">
+    <div>
+        <h4 class="mb-1 text-dark fw-bold">Employee Directory</h4>
+        <div class="text-muted small">Manage your team members</div>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4 fw-medium text-muted" style="font-size: 0.85rem;">Employee Name</th>
+                        <th class="fw-medium text-muted" style="font-size: 0.85rem;">ID</th>
+                        <th class="fw-medium text-muted" style="font-size: 0.85rem;">Department</th>
+                        <th class="fw-medium text-muted" style="font-size: 0.85rem;">Designation</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for employee in employees %}
+                    <tr>
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center">
+                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center me-3 fw-bold" style="width: 38px; height: 38px;">
+                                    {{ employee.user.first_name|make_list|first|upper|default:employee.user.username|make_list|first|upper }}
+                                </div>
+                                <div>
+                                    <h6 class="mb-0 fw-medium text-dark">{{ employee.user.get_full_name|default:employee.user.username }}</h6>
+                                    <small class="text-muted">{{ employee.user.email }}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="fw-medium text-dark">{{ employee.employee_id }}</td>
+                        <td><span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1">{{ employee.department }}</span></td>
+                        <td>{{ employee.designation }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <i class="fas fa-users-slash fa-3x mb-3 text-light"></i>
+                            <p class="mb-0">No employees found in the directory.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

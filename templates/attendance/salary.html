@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+{% block title %}My Pay | Premium Payroll{% endblock %}
+
+{% block content %}
+
+<!-- Header with Month Navigation -->
+<div class="d-flex align-items-center justify-content-between mb-5">
+    <div>
+        <h4 class="text-white fw-bold mb-1" style="letter-spacing:0.5px;">My Pay</h4>
+        <p class="text-white-50 mb-0" style="font-size:0.95rem;">Day-wise salary breakdown</p>
+    </div>
+    <div class="d-flex align-items-center">
+        <a href="?year={{ prev_year }}&month={{ prev_month }}" class="btn btn-glass text-white"><i class="fas fa-chevron-left"></i></a>
+        <span class="text-white fw-bold mx-4 fs-5" style="letter-spacing:1px;">
+            {% if salary_data %}{{ salary_data.month_name }} {{ salary_data.year }}{% endif %}
+        </span>
+        <a href="?year={{ next_year }}&month={{ next_month }}" class="btn btn-glass text-white me-3"><i class="fas fa-chevron-right"></i></a>
+        <a href="?" class="btn btn-vibrant px-3 text-white text-decoration-none" style="font-size:0.9rem;">This Month</a>
+    </div>
+</div>
+
+{% if not employee %}
+<div class="glass-panel rounded-4 p-5 text-center">
+    <i class="fas fa-user-slash fa-3x text-white-50 mb-3 opacity-50"></i>
+    <p class="text-white-50">No employee profile linked to your account.</p>
+</div>
+{% elif not salary_data %}
+<div class="glass-panel rounded-4 p-5 text-center">
+    <i class="fas fa-spinner fa-spin fa-2x text-white-50 mb-3"></i>
+    <p class="text-white-50">Loading salary data...</p>
+</div>
+{% else %}
+
+<!-- Summary Cards -->
+<div class="row g-4 mb-5">
+    <!-- Gross Salary -->
+    <div class="col-md-4">
+        <div class="glass-panel rounded-4 p-4" style="background:rgba(99,102,241,0.08); border-color:rgba(99,102,241,0.2); position:relative; overflow:hidden;">
+            <div style="position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:rgba(236,72,153,0.2);filter:blur(30px);border-radius:50%;"></div>
+            <p class="text-white-50 fw-medium mb-2 text-uppercase" style="font-size:0.75rem; letter-spacing:1px;">Gross Salary</p>
+            <h2 class="fw-bold mb-1" style="background:var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">
+                ₹{{ salary_data.gross_salary }}
+            </h2>
+            <p class="text-white-50 mb-0" style="font-size:0.85rem;">Daily wage: ₹{{ salary_data.daily_wage }}</p>
+        </div>
+    </div>
+
+    <!-- Payable Days -->
+    <div class="col-md-4">
+        <div class="glass-panel rounded-4 p-4">
+            <p class="text-white-50 fw-medium mb-2 text-uppercase" style="font-size:0.75rem; letter-spacing:1px;">Payable Days</p>
+            <h2 class="fw-bold text-white mb-1">{{ salary_data.payable_days }}</h2>
+            <p class="text-white-50 mb-0" style="font-size:0.85rem;">out of {{ salary_data.total_days }} total days</p>
+        </div>
+    </div>
+
+    <!-- Base Salary -->
+    <div class="col-md-4">
+        <div class="glass-panel rounded-4 p-4">
+            <p class="text-white-50 fw-medium mb-2 text-uppercase" style="font-size:0.75rem; letter-spacing:1px;">Monthly Base Salary</p>
+            <h2 class="fw-bold text-white mb-1">₹{{ salary_data.monthly_salary }}</h2>
+            <p class="text-white-50 mb-0" style="font-size:0.85rem;">Fixed CTC (monthly)</p>
+        </div>
+    </div>
+</div>
+
+<!-- Attendance Breakdown -->
+<div class="row g-4 mb-5">
+    <div class="col-md-3">
+        <div class="glass-panel rounded-4 p-4 text-center">
+            <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width:54px;height:54px;background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);">
+                <i class="fas fa-check" style="color:#34d399;"></i>
+            </div>
+            <h4 class="fw-bold text-white mb-1">{{ salary_data.present_days }}</h4>
+            <p class="text-white-50 mb-0" style="font-size:0.9rem;">Present Days</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-panel rounded-4 p-4 text-center">
+            <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width:54px;height:54px;background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);">
+                <i class="far fa-calendar-check" style="color:#818cf8;"></i>
+            </div>
+            <h4 class="fw-bold text-white mb-1">{{ salary_data.leave_days }}</h4>
+            <p class="text-white-50 mb-0" style="font-size:0.9rem;">Paid Leaves</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-panel rounded-4 p-4 text-center">
+            <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width:54px;height:54px;background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);">
+                <i class="fas fa-adjust" style="color:#fbbf24;"></i>
+            </div>
+            <h4 class="fw-bold text-white mb-1">{{ salary_data.half_days }}</h4>
+            <p class="text-white-50 mb-0" style="font-size:0.9rem;">Half Days (×0.5)</p>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="glass-panel rounded-4 p-4 text-center">
+            <div class="rounded-circle d-flex align-items-center justify-content-center mx-auto mb-3" style="width:54px;height:54px;background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);">
+                <i class="fas fa-times" style="color:#f87171;"></i>
+            </div>
+            <h4 class="fw-bold text-white mb-1">{{ salary_data.absent_days }}</h4>
+            <p class="text-white-50 mb-0" style="font-size:0.9rem;">Absent (Unpaid)</p>
+        </div>
+    </div>
+</div>
+
+<!-- Salary Formula Box -->
+<div class="glass-panel rounded-4 p-4 mb-5">
+    <h6 class="text-white fw-bold mb-3 text-uppercase" style="font-size:0.8rem; letter-spacing:1px;">Salary Calculation</h6>
+    <div class="d-flex flex-wrap gap-4 align-items-center">
+        <div class="text-center">
+            <div class="text-white-50" style="font-size:0.8rem;">Monthly Salary</div>
+            <div class="text-white fw-bold" style="font-size:1.1rem;">₹{{ salary_data.monthly_salary }}</div>
+        </div>
+        <div class="text-white-50 fs-5">÷</div>
+        <div class="text-center">
+            <div class="text-white-50" style="font-size:0.8rem;">Total Days</div>
+            <div class="text-white fw-bold" style="font-size:1.1rem;">{{ salary_data.total_days }}</div>
+        </div>
+        <div class="text-white-50 fs-5">=</div>
+        <div class="text-center">
+            <div class="text-white-50" style="font-size:0.8rem;">Daily Wage</div>
+            <div class="text-white fw-bold" style="font-size:1.1rem;">₹{{ salary_data.daily_wage }}</div>
+        </div>
+        <div class="text-white-50 fs-5">×</div>
+        <div class="text-center">
+            <div class="text-white-50" style="font-size:0.8rem;">Payable Days</div>
+            <div class="text-white fw-bold" style="font-size:1.1rem;">{{ salary_data.payable_days }}</div>
+        </div>
+        <div class="text-white-50 fs-5">=</div>
+        <div class="text-center">
+            <div class="text-white-50" style="font-size:0.8rem;">Gross Salary</div>
+            <div class="fw-bold" style="font-size:1.2rem; background:var(--gradient-primary); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">₹{{ salary_data.gross_salary }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Day-wise Attendance Log -->
+{% if monthly_records %}
+<div class="glass-panel rounded-4 p-4">
+    <h6 class="text-white fw-bold mb-4 text-uppercase" style="font-size:0.8rem; letter-spacing:1px;">Day-wise Attendance Log</h6>
+    <div class="table-responsive">
+        <table class="table table-dark table-borderless align-middle mb-0" style="background: transparent !important; --bs-table-bg: transparent; color: var(--text-main);">
+            <thead>
+                <tr style="border-bottom:1px solid var(--glass-border);">
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">DATE</th>
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">STATUS</th>
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">CHECK IN</th>
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">CHECK OUT</th>
+                    <th class="text-white-50 fw-medium pb-3 text-end" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">PAYABLE</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for rec in monthly_records %}
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                <td class="py-3 text-white fw-medium" style="background:transparent;">{{ rec.date|date:"d M, D" }}</td>
+                <td class="py-3" style="background:transparent;">
+                    {% if rec.status == 'PRESENT' %}
+                    <span class="badge rounded-pill px-3 py-2" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:#34d399;font-size:0.8rem;">Present</span>
+                    {% elif rec.status == 'LEAVE' %}
+                    <span class="badge rounded-pill px-3 py-2" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);color:#818cf8;font-size:0.8rem;">Leave</span>
+                    {% elif rec.status == 'HALF_DAY' %}
+                    <span class="badge rounded-pill px-3 py-2" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:#fbbf24;font-size:0.8rem;">Half Day</span>
+                    {% else %}
+                    <span class="badge rounded-pill px-3 py-2" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;font-size:0.8rem;">Absent</span>
+                    {% endif %}
+                </td>
+                <td class="py-3 text-white-50" style="background:transparent;">{{ rec.time_in|time:"H:i"|default:"—" }}</td>
+                <td class="py-3 text-white-50" style="background:transparent;">{{ rec.time_out|time:"H:i"|default:"—" }}</td>
+                <td class="py-3 text-end fw-bold" style="background:transparent; {% if rec.status == 'PRESENT' or rec.status == 'LEAVE' %}color:#34d399;{% elif rec.status == 'HALF_DAY' %}color:#fbbf24;{% else %}color:#f87171;{% endif %}">
+                    {% if rec.status == 'PRESENT' or rec.status == 'LEAVE' %}1.0 day
+                    {% elif rec.status == 'HALF_DAY' %}0.5 day
+                    {% else %}0.0 day{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}

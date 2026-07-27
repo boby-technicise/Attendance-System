@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Login - AttenSys{% endblock %}
+
+{% block content %}
+<div class="container d-flex justify-content-center align-items-center h-100 w-100" style="min-height: 100vh;">
+    <div class="card glass-card p-5 border-0 shadow-lg" style="width: 100%; max-width: 420px; border-radius: 20px;">
+        <div class="text-center mb-5">
+            <div class="d-inline-flex align-items-center justify-content-center bg-primary bg-opacity-10 rounded-circle mb-3" style="width: 70px; height: 70px;">
+                <i class="fas fa-fingerprint fa-2x text-primary"></i>
+            </div>
+            <h3 class="fw-bold text-dark mb-1">Welcome Back</h3>
+            <p class="text-muted">Please sign in to your account</p>
+        </div>
+        <form method="post">
+            {% csrf_token %}
+            {{ form|crispy }}
+            <button class="btn btn-primary w-100 mt-4 py-2 fw-bold" style="border-radius: 8px;" type="submit">Sign In</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
