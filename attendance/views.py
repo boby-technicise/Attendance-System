@@ -41,7 +41,7 @@ class EmployeeListView(LoginRequiredMixin, ListView):
 
 class MarkAttendanceView(LoginRequiredMixin, View):
     def get(self, request):
-        today = timezone.now().date()
+        today = timezone.localtime().date()
 
         try:
             year = int(request.GET.get('year', today.year))
@@ -65,9 +65,12 @@ class MarkAttendanceView(LoginRequiredMixin, View):
         cal = calendar.Calendar(firstweekday=6)  # Sunday first
         month_days = cal.monthdatescalendar(year, month)
 
+        monthly_records = []
         attendance_dict = {}
         if employee:
-            for record in Attendance.objects.filter(employee=employee, date__year=year, date__month=month):
+            qs = Attendance.objects.filter(employee=employee, date__year=year, date__month=month).order_by('date')
+            monthly_records = list(qs)
+            for record in qs:
                 attendance_dict[record.date] = record.status
 
         calendar_data = []
@@ -115,11 +118,12 @@ class MarkAttendanceView(LoginRequiredMixin, View):
             'next_month': next_month,
             'next_year': next_year,
             'leave_requests': leave_requests,
+            'monthly_records': monthly_records,
         }
         return render(request, 'attendance/mark_attendance.html', context)
 
     def post(self, request):
-        today = timezone.now().date()
+        today = timezone.localtime().date()
         action = request.POST.get('action')
 
         employee = get_or_create_employee(request.user)
@@ -127,14 +131,14 @@ class MarkAttendanceView(LoginRequiredMixin, View):
         if action == 'checkin':
             Attendance.objects.update_or_create(
                 employee=employee, date=today,
-                defaults={'status': 'PRESENT', 'time_in': timezone.now().time()}
+                defaults={'status': 'PRESENT', 'time_in': timezone.localtime().time()}
             )
             messages.success(request, 'Successfully checked in for today!')
 
         elif action == 'checkout':
             attendance = Attendance.objects.filter(employee=employee, date=today).first()
             if attendance and not attendance.time_out:
-                attendance.time_out = timezone.now().time()
+                attendance.time_out = timezone.localtime().time()
                 attendance.save()
                 messages.success(request, 'Successfully checked out. Have a good day!')
 

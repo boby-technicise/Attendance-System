@@ -119,6 +119,58 @@
     </div>
 </div>
 
+<!-- Day-wise Attendance Log -->
+{% if monthly_records %}
+<div class="glass-panel rounded-4 p-4 mb-4">
+    <div class="d-flex align-items-center justify-content-between mb-4">
+        <h6 class="text-white fw-bold mb-0 text-uppercase" style="font-size:0.8rem; letter-spacing:1px;">
+            <i class="fas fa-list-ul me-2" style="color:#a5b4fc;"></i>Day-wise Attendance Log ({{ month_name }} {{ year }})
+        </h6>
+        <span class="badge rounded-pill px-3 py-1" style="background:rgba(99,102,241,0.15); border:1px solid rgba(99,102,241,0.3); color:#a5b4fc; font-size:0.75rem;">
+            {{ monthly_records|length }} Record{% if monthly_records|length > 1 %}s{% endif %}
+        </span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-dark table-borderless align-middle mb-0" style="background: transparent !important; --bs-table-bg: transparent; color: var(--text-main);">
+            <thead>
+                <tr style="border-bottom:1px solid var(--glass-border);">
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">DATE</th>
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">STATUS</th>
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">CHECK IN</th>
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">CHECK OUT</th>
+                    <th class="text-white-50 fw-medium pb-3 text-end" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">PAYABLE</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for rec in monthly_records %}
+            <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                <td class="py-3 text-white fw-medium" style="background:transparent;">{{ rec.date|date:"d M, D" }}</td>
+                <td class="py-3" style="background:transparent;">
+                    {% if rec.status == 'PRESENT' %}
+                    <span class="badge rounded-pill px-3 py-2" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:#34d399;font-size:0.8rem;">Present</span>
+                    {% elif rec.status == 'LEAVE' %}
+                    <span class="badge rounded-pill px-3 py-2" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);color:#818cf8;font-size:0.8rem;">Leave</span>
+                    {% elif rec.status == 'HALF_DAY' %}
+                    <span class="badge rounded-pill px-3 py-2" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:#fbbf24;font-size:0.8rem;">Half Day</span>
+                    {% else %}
+                    <span class="badge rounded-pill px-3 py-2" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;font-size:0.8rem;">Absent</span>
+                    {% endif %}
+                </td>
+                <td class="py-3 text-white-50" style="background:transparent;">{{ rec.time_in|time:"H:i"|default:"—" }}</td>
+                <td class="py-3 text-white-50" style="background:transparent;">{{ rec.time_out|time:"H:i"|default:"—" }}</td>
+                <td class="py-3 text-end fw-bold" style="background:transparent; {% if rec.status == 'PRESENT' or rec.status == 'LEAVE' %}color:#34d399;{% elif rec.status == 'HALF_DAY' %}color:#fbbf24;{% else %}color:#f87171;{% endif %}">
+                    {% if rec.status == 'PRESENT' or rec.status == 'LEAVE' %}1.0 day
+                    {% elif rec.status == 'HALF_DAY' %}0.5 day
+                    {% else %}0.0 day{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
 <!-- Open Requests -->
 {% if leave_requests %}
 <div class="glass-panel rounded-4 p-4 mb-4">

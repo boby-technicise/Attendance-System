@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -284,7 +285,8 @@
     <div class="sidebar">
         <div class="sidebar-header">
             <h4 class="mb-0 d-flex align-items-center">
-                <i class="fas fa-layer-group me-3 text-white"></i> NEXUS
+                <img src="{% static 'images/techniciselogo.png' %}" alt="Technicise Logo" class="me-3" style="height: 50px; width: 50px; object-fit: contain; filter: drop-shadow(0 0 8px rgba(99,102,241,0.5));">
+                <span style="font-weight: 800; letter-spacing: 1px; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">TECHNICISE</span>
             </h4>
         </div>
         <div class="sidebar-menu">
@@ -324,7 +326,6 @@
 
     <!-- Top Navbar -->
     <div class="top-navbar">
-        <div class="company-love">Powered by <span style="color: #ec4899; font-weight: 700;">Nexus AI</span></div>
         <div class="search-box">
             <i class="fas fa-search"></i>
             <input type="text" placeholder="Search workspace...">
