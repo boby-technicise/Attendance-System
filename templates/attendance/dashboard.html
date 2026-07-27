@@ -14,10 +14,10 @@
                 <div class="glass-panel rounded-4 h-100 p-4">
                     <h6 class="mb-4 fw-bold text-white text-uppercase" style="letter-spacing: 1px; font-size: 0.85rem; color: #a5b4fc !important;">Reminders</h6>
                     <div class="mb-3 border-bottom pb-3" style="border-color: var(--glass-border) !important;">
-                        <span class="text-muted" style="font-size: 0.95rem;">IT declaration window is open now <a href="#" class="text-white text-decoration-none fw-semibold" style="text-decoration: underline !important; text-underline-offset: 4px;">Declare Now</a></span>
+                        <span style="font-size: 0.95rem;">IT declaration window is open now <a href="#" class="text-white text-decoration-none fw-semibold" style="text-decoration: underline !important; text-underline-offset: 4px;">Declare Now</a></span>
                     </div>
                     <div>
-                        <span class="text-muted" style="font-size: 0.95rem;">Please consider <a href="#" class="text-white text-decoration-none fw-semibold" style="text-decoration: underline !important; text-underline-offset: 4px;">uploading a photo</a> of yourself.</span>
+                        <span style="font-size: 0.95rem;">Please consider <a href="#" class="text-white text-decoration-none fw-semibold" style="text-decoration: underline !important; text-underline-offset: 4px;">uploading a photo</a> of yourself.</span>
                     </div>
                 </div>
             </div>
@@ -27,10 +27,10 @@
                 <div class="glass-panel rounded-4 h-100 p-4">
                     <h6 class="mb-4 fw-bold text-white text-uppercase" style="letter-spacing: 1px; font-size: 0.85rem; color: #a5b4fc !important;">Quick links</h6>
                     <div class="mb-3 border-bottom pb-3" style="border-color: var(--glass-border) !important;">
-                        <a href="#" class="text-white text-decoration-none fw-medium" style="font-size: 1rem; transition: color 0.3s;" onmouseover="this.style.color='#f472b6'" onmouseout="this.style.color='white'"><i class="fas fa-file-invoice-dollar me-2 text-muted"></i> View personal transactions</a>
+                        <a href="#" class="text-white text-decoration-none fw-medium" style="font-size: 1rem; transition: color 0.3s;" onmouseover="this.style.color='#f472b6'" onmouseout="this.style.color='white'"><i class="fas fa-file-invoice-dollar me-2"></i> View personal transactions</a>
                     </div>
                     <div>
-                        <a href="#" class="text-white text-decoration-none fw-medium" style="font-size: 1rem; transition: color 0.3s;" onmouseover="this.style.color='#f472b6'" onmouseout="this.style.color='white'"><i class="fas fa-users me-2 text-muted"></i> Employee directory</a>
+                        <a href="#" class="text-white text-decoration-none fw-medium" style="font-size: 1rem; transition: color 0.3s;" onmouseover="this.style.color='#f472b6'" onmouseout="this.style.color='white'"><i class="fas fa-users me-2"></i> Employee directory</a>
                     </div>
                 </div>
             </div>
@@ -46,7 +46,7 @@
             <div class="rounded-circle mb-4 d-flex align-items-center justify-content-center shadow-lg" style="width: 90px; height: 90px; background: var(--gradient-primary); font-size: 2.5rem; font-weight: 800; color: white; position: relative; z-index: 1;">
                 {{ user.username|make_list|first|upper }}
             </div>
-            <span class="text-muted mb-2 text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 1.5px; position: relative; z-index: 1;">Welcome Back</span>
+            <span class="mb-2 text-uppercase fw-bold" style="font-size: 0.75rem; letter-spacing: 1.5px; position: relative; z-index: 1;">Welcome Back</span>
             <h3 class="text-white fw-bold mb-1" style="position: relative; z-index: 1;">{{ user.get_full_name|default:user.username }}</h3>
             {% if employee %}
             <div class="text-white-50 mb-4" style="font-size: 1rem; position: relative; z-index: 1;">{{ employee.designation|default:"Employee" }}</div>

@@ -11,27 +11,39 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
+        /* Default Employee / Standard User Theme (Cyan & Electric Indigo) */
         :root {
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
             --glass-bg: rgba(15, 23, 42, 0.6);
             --glass-border: rgba(255, 255, 255, 0.08);
             --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-            --sidebar-active: rgba(99, 102, 241, 0.15);
-            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #ec4899 100%);
-            --gradient-hover: linear-gradient(135deg, #4f46e5 0%, #db2777 100%);
+            --sidebar-active: rgba(6, 182, 212, 0.15);
+            --gradient-primary: linear-gradient(135deg, #6366f1 0%, #06b6d4 100%);
+            --gradient-hover: linear-gradient(135deg, #4f46e5 0%, #0891b2 100%);
+            --theme-accent: #06b6d4;
+            --bg-gradient: linear-gradient(-45deg, #020617, #0f172a, #0e3742, #0f172a);
         }
+
+        /* Admin Portal Theme (Rose Pink & Neon Royal Purple) */
+        body.theme-admin {
+            --sidebar-active: rgba(236, 72, 153, 0.18);
+            --gradient-primary: linear-gradient(135deg, #ec4899 0%, #8b5cf6 100%);
+            --gradient-hover: linear-gradient(135deg, #db2777 0%, #7c3aed 100%);
+            --theme-accent: #f472b6;
+            --bg-gradient: linear-gradient(-45deg, #18091e, #0f172a, #2c0b22, #0f172a);
+        }
+
         body {
             /* Deep animated gradient background */
-            background: linear-gradient(-45deg, #020617, #0f172a, #1e1b4b, #0f172a);
+            background: var(--bg-gradient);
             background-size: 400% 400%;
             animation: gradientBG 15s ease infinite;
             color: var(--text-main);
             font-family: 'Outfit', sans-serif;
-            display: flex;
             min-height: 100vh;
-            margin: 0;
-            overflow: hidden;
+            display: flex;
+            flex-direction: column;
         }
         @keyframes gradientBG {
             0% { background-position: 0% 50%; }
@@ -279,13 +291,13 @@
         }
     </style>
 </head>
-<body>
+<body class="{% if user.is_staff or user.is_superuser %}theme-admin{% else %}theme-employee{% endif %}">
     {% if user.is_authenticated %}
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
             <h4 class="mb-0 d-flex align-items-center">
-                <img src="{% static 'images/techniciselogo.png' %}" alt="Technicise Logo" class="me-3" style="height: 54px; width: 54px; object-fit: contain;">
+                <img src="{% static 'images/techniciselogo.png' %}" alt="Technicise Logo" class="me-3" style="height: 34px; width: 34px; object-fit: contain; filter: drop-shadow(0 0 8px rgba(99,102,241,0.5));">
                 <span style="font-weight: 800; letter-spacing: 1px; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">TECHNICISE</span>
             </h4>
         </div>
@@ -326,14 +338,19 @@
 
     <!-- Top Navbar -->
     <div class="top-navbar">
+        <!-- <div class="company-love">Powered by <span style="color: #ec4899; font-weight: 700;">Nexus AI</span></div> -->
         <div class="search-box">
             <i class="fas fa-search"></i>
             <input type="text" placeholder="Search workspace...">
         </div>
         <div class="top-icons d-flex align-items-center gap-3">
             {% if user.is_staff or user.is_superuser %}
-            <span class="badge rounded-pill px-3 py-2" style="background:rgba(236,72,153,0.15); border:1px solid rgba(236,72,153,0.3); color:#ec4899; font-size:0.75rem; font-weight:600;">
-                <i class="fas fa-user-shield me-1"></i> Admin & User Mode
+            <span class="badge rounded-pill px-3 py-2" style="background:rgba(236,72,153,0.18); border:1px solid rgba(236,72,153,0.4); color:#ec4899; font-size:0.75rem; font-weight:600; box-shadow: 0 0 12px rgba(236,72,153,0.3);">
+                <i class="fas fa-user-shield me-1"></i> Admin Portal
+            </span>
+            {% else %}
+            <span class="badge rounded-pill px-3 py-2" style="background:rgba(6,182,212,0.18); border:1px solid rgba(6,182,212,0.4); color:#06b6d4; font-size:0.75rem; font-weight:600; box-shadow: 0 0 12px rgba(6,182,212,0.3);">
+                <i class="fas fa-user me-1"></i> Employee Portal
             </span>
             {% endif %}
             <button class="icon-btn"><i class="far fa-bell"></i></button>
