@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from django.views.generic import TemplateView, ListView, View
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -375,5 +376,76 @@ class CreateEmployeeView(LoginRequiredMixin, View):
 
         messages.success(request, f'Employee account for {first_name} {last_name} ({email}) created successfully! ID: {emp_id}')
         return redirect('create_employee')
+
+
+class ChangePasswordView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, 'attendance/change_password.html')
+
+    def post(self, request):
+        current_password = request.POST.get('current_password', '')
+        new_password = request.POST.get('new_password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+
+        if not current_password or not new_password or not confirm_password:
+            messages.error(request, 'All password fields are required.')
+            return render(request, 'attendance/change_password.html')
+
+        if not request.user.check_password(current_password):
+            messages.error(request, 'Your current password is incorrect.')
+            return render(request, 'attendance/change_password.html')
+
+        if new_password != confirm_password:
+            messages.error(request, 'The new password and confirmation password do not match.')
+            return render(request, 'attendance/change_password.html')
+
+        if len(new_password) < 8:
+            messages.error(request, 'New password must be at least 8 characters long.')
+            return render(request, 'attendance/change_password.html')
+
+        if current_password == new_password:
+            messages.error(request, 'New password cannot be the same as your current password.')
+            return render(request, 'attendance/change_password.html')
+
+        user = request.user
+        user.set_password(new_password)
+        user.save()
+        update_session_auth_hash(request, user)
+
+        messages.success(request, 'Your password has been changed successfully!')
+        return redirect('change_password')
+
+
+class AdminChangeUserPasswordView(LoginRequiredMixin, View):
+    def post(self, request, user_id):
+        if not (request.user.is_staff or request.user.is_superuser):
+            messages.error(request, 'Access denied. Admin privileges required.')
+            return redirect('dashboard')
+
+        new_password = request.POST.get('new_password', '').strip()
+        confirm_password = request.POST.get('confirm_password', '').strip()
+
+        if not new_password or not confirm_password:
+            messages.error(request, 'Password fields cannot be empty.')
+            return redirect('employee_list')
+
+        if new_password != confirm_password:
+            messages.error(request, 'New passwords do not match.')
+            return redirect('employee_list')
+
+        if len(new_password) < 8:
+            messages.error(request, 'Password must be at least 8 characters long.')
+            return redirect('employee_list')
+
+        try:
+            target_user = User.objects.get(id=user_id)
+            target_user.set_password(new_password)
+            target_user.save()
+            messages.success(request, f'Password for {target_user.get_full_name() or target_user.username} updated successfully!')
+        except User.DoesNotExist:
+            messages.error(request, 'Target user not found.')
+
+        return redirect('employee_list')
+
 
 
