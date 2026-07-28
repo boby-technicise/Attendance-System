@@ -95,3 +95,26 @@ class LeaveRequest(models.Model):
 
     def __str__(self):
         return f"{self.employee} | {self.get_leave_type_display()} | {self.start_date} to {self.end_date} [{self.status}]"
+
+
+class AuditLog(models.Model):
+    ACTION_CHOICES = [
+        ('DEACTIVATE', 'Account Deactivated / Left Company'),
+        ('REACTIVATE', 'Account Reactivated'),
+        ('EDIT_PROFILE', 'Profile Edited'),
+        ('RESET_PASSWORD', 'Password Reset'),
+        ('CREATE_EMPLOYEE', 'Employee Created'),
+    ]
+
+    actor = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='audit_actions')
+    action_type = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    target_user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='audit_targets')
+    details = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+    def __str__(self):
+        return f"{self.get_action_type_display()} on {self.target_user} by {self.actor} at {self.timestamp.strftime('%d/%m/%Y %H:%M')}"
+

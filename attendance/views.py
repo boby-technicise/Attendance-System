@@ -4,8 +4,9 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.models import User
 from django.db import transaction
+from django.db.models import Q
 from django.utils import timezone
-from .models import Employee, Attendance, LeaveRequest
+from .models import Employee, Attendance, LeaveRequest, AuditLog
 from .services import calculate_monthly_salary, approve_leave, reject_leave
 from django.contrib import messages
 from datetime import datetime, date, timedelta
@@ -700,6 +701,13 @@ class AdminChangeUserPasswordView(LoginRequiredMixin, View):
             target_user = User.objects.get(id=user_id)
             target_user.set_password(new_password)
             target_user.save()
+
+            AuditLog.objects.create(
+                actor=request.user,
+                action_type='RESET_PASSWORD',
+                target_user=target_user,
+                details=f"Admin '{request.user.username}' reset password for employee account '{target_user.email}'."
+            )
             messages.success(request, f'Password for {target_user.get_full_name() or target_user.username} updated successfully!')
         except User.DoesNotExist:
             messages.error(request, 'Target user not found.')
@@ -735,6 +743,15 @@ class ToggleUserActiveView(LoginRequiredMixin, View):
             else:
                 employee.date_of_exit = None
             employee.save()
+
+        action_code = 'REACTIVATE' if target_user.is_active else 'DEACTIVATE'
+        details_txt = "Account reactivated and departure status cleared." if target_user.is_active else f"Account deactivated. Marked exit date as {employee.date_of_exit if employee else 'today'}."
+        AuditLog.objects.create(
+            actor=request.user,
+            action_type=action_code,
+            target_user=target_user,
+            details=details_txt
+        )
 
         status_label = "deactivated (marked as left)" if not target_user.is_active else "reactivated"
         messages.success(request, f"Employee {target_user.get_full_name() or target_user.username} account has been {status_label}.")
@@ -846,8 +863,168 @@ class EditEmployeeView(LoginRequiredMixin, View):
 
         employee.save()
 
+        AuditLog.objects.create(
+            actor=request.user,
+            action_type='EDIT_PROFILE',
+            target_user=user,
+            details=f"Admin '{request.user.username}' edited employee profile details for '{user.get_full_name() or user.username}'."
+        )
+
         messages.success(request, f"Employee '{user.get_full_name() or user.username}' updated successfully.")
         return redirect('employee_list')
+
+
+class ExportEmployeesExcelView(LoginRequiredMixin, View):
+    def get(self, request):
+        if not (request.user.is_staff or request.user.is_superuser):
+            messages.error(request, 'Access denied. Admin privileges required.')
+            return redirect('employee_list')
+
+        queryset = Employee.objects.select_related('user').all().order_by('id')
+        q = request.GET.get('q', '').strip()
+        status = request.GET.get('status', '').strip()
+
+        if q:
+            queryset = queryset.filter(
+                Q(user__first_name__icontains=q) |
+                Q(user__last_name__icontains=q) |
+                Q(user__email__icontains=q) |
+                Q(user__username__icontains=q) |
+                Q(employee_id__icontains=q) |
+                Q(department__icontains=q) |
+                Q(designation__icontains=q)
+            )
+        if status == 'active':
+            queryset = queryset.filter(user__is_active=True)
+        elif status == 'inactive':
+            queryset = queryset.filter(user__is_active=False)
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Employees Directory"
+
+        headers = [
+            'Sl No', 'Employee ID', 'Full Name', 'Email', 'Department', 'Designation',
+            'Status', 'Date of Hiring', 'Date of Exit', 'Monthly Salary (INR)', 'Annual CTC (INR)',
+            'PAN Number', 'PF Account', 'Bank Account', 'IFSC Code'
+        ]
+        ws.append(headers)
+
+        for idx, emp in enumerate(queryset, start=1):
+            full_name = emp.user.get_full_name() or emp.user.username
+            status_str = 'Active' if emp.user.is_active else 'Left Company'
+            hiring_date = emp.date_of_hiring.strftime('%d/%m/%Y') if emp.date_of_hiring else ''
+            exit_date = emp.date_of_exit.strftime('%d/%m/%Y') if emp.date_of_exit else ''
+            pf_str = 'Yes' if emp.provident_fund else 'No'
+
+            row = [
+                idx, emp.employee_id, full_name, emp.user.email, emp.department or '', emp.designation or '',
+                status_str, hiring_date, exit_date, float(emp.monthly_salary or 0), float(emp.annual_ctc or 0),
+                emp.pan_number or '', pf_str, emp.bank_account_number or '', emp.bank_ifsc_code or ''
+            ]
+            ws.append(row)
+
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="Employee_Directory_Export.xlsx"'
+        wb.save(response)
+        return response
+
+
+class AuditLogView(LoginRequiredMixin, ListView):
+    model = AuditLog
+    template_name = 'attendance/audit_log.html'
+    context_object_name = 'audit_logs'
+    paginate_by = 25
+
+    def get_queryset(self):
+        if not (self.request.user.is_staff or self.request.user.is_superuser):
+            return AuditLog.objects.none()
+
+        queryset = AuditLog.objects.select_related('actor', 'target_user').all()
+        q = self.request.GET.get('q', '').strip()
+        action = self.request.GET.get('action', '').strip()
+
+        if q:
+            queryset = queryset.filter(
+                Q(actor__username__icontains=q) |
+                Q(actor__first_name__icontains=q) |
+                Q(target_user__username__icontains=q) |
+                Q(target_user__first_name__icontains=q) |
+                Q(details__icontains=q)
+            )
+
+        if action:
+            queryset = queryset.filter(action_type=action)
+
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['q'] = self.request.GET.get('q', '')
+        context['action'] = self.request.GET.get('action', '')
+        context['action_choices'] = AuditLog.ACTION_CHOICES
+        return context
+
+
+class EmployeeProfileView(LoginRequiredMixin, View):
+    def get(self, request):
+        employee = get_or_create_employee(request.user)
+        today = timezone.localtime().date()
+        first_day = today.replace(day=1)
+        attendance_records = Attendance.objects.filter(
+            employee=employee,
+            date__gte=first_day,
+            date__lte=today
+        ).order_by('-date')
+
+        present_count = attendance_records.filter(status='PRESENT').count()
+        absent_count = attendance_records.filter(status='ABSENT').count()
+        leave_count = attendance_records.filter(status='LEAVE').count()
+        half_day_count = attendance_records.filter(status='HALF_DAY').count()
+
+        context = {
+            'employee': employee,
+            'attendance_records': attendance_records[:10],
+            'present_count': present_count,
+            'absent_count': absent_count,
+            'leave_count': leave_count,
+            'half_day_count': half_day_count,
+        }
+        return render(request, 'attendance/employee_profile.html', context)
+
+
+class FnFSettlementView(LoginRequiredMixin, View):
+    def get(self, request, employee_id):
+        if not (request.user.is_staff or request.user.is_superuser):
+            messages.error(request, 'Access denied. Admin privileges required.')
+            return redirect('employee_list')
+
+        employee = get_object_or_404(Employee, id=employee_id)
+        exit_date = employee.date_of_exit or timezone.now().date()
+        days_in_exit_month = calendar.monthrange(exit_date.year, exit_date.month)[1]
+        worked_days = exit_date.day
+
+        monthly_salary = float(employee.monthly_salary or 0)
+        daily_rate = monthly_salary / days_in_exit_month if days_in_exit_month else 0
+        pro_rated_salary = daily_rate * worked_days
+
+        annual_ctc = float(employee.annual_ctc or 0)
+        tds_estimate = pro_rated_salary * 0.05 if annual_ctc > 500000 else 0
+        net_payable = max(0, pro_rated_salary - tds_estimate)
+
+        context = {
+            'employee': employee,
+            'exit_date': exit_date,
+            'days_in_exit_month': days_in_exit_month,
+            'worked_days': worked_days,
+            'monthly_salary': monthly_salary,
+            'daily_rate': round(daily_rate, 2),
+            'pro_rated_salary': round(pro_rated_salary, 2),
+            'tds_estimate': round(tds_estimate, 2),
+            'net_payable': round(net_payable, 2),
+        }
+        return render(request, 'attendance/fnf_settlement.html', context)
+
 
 
 

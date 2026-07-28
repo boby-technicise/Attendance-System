@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="navbar-custom d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="mb-1 fw-bold"><i class="fas fa-file-invoice-dollar text-primary me-2"></i>Full & Final (FnF) Exit Settlement</h4>
+        <div class="small">Offboarding salary computation for deactivated employee</div>
+    </div>
+    <a href="{% url 'employee_list' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Back to Directory
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-md-9">
+        <div class="card border-0 shadow-lg">
+            <div class="card-header bg-dark text-white p-4 d-flex justify-content-between align-items-center">
+                <div>
+                    <h5 class="fw-bold mb-1">{{ employee.user.get_full_name|default:employee.user.username }}</h5>
+                    <div class="small text-muted">{{ employee.user.email }} | ID: {{ employee.employee_id }}</div>
+                </div>
+                <div class="text-end">
+                    <span class="badge bg-danger px-3 py-2 fs-6">Left Company</span>
+                    <div class="small text-muted mt-1">Exit Date: {{ exit_date|date:"d M Y" }}</div>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                <h6 class="fw-bold text-uppercase text-primary mb-3 border-bottom pb-2">
+                    <i class="fas fa-calculator me-2"></i>Exit Month Pro-Rated Salary Breakdown
+                </h6>
+
+                <div class="table-responsive mb-4">
+                    <table class="table table-bordered align-middle">
+                        <tbody class="table-group-divider">
+                            <tr>
+                                <td class="fw-semibold bg-light" style="width: 50%;">Monthly Salary Base</td>
+                                <td class="fw-bold text-dark fs-6">₹{{ monthly_salary|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold bg-light">Days in Exit Month ({{ exit_date|date:"F Y" }})</td>
+                                <td>{{ days_in_exit_month }} Days</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold bg-light">Active Days Worked Before Exit</td>
+                                <td class="fw-bold text-primary">{{ worked_days }} Days</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold bg-light">Calculated Daily Wage Rate</td>
+                                <td>₹{{ daily_rate|floatformat:2 }} / day</td>
+                            </tr>
+                            <tr class="table-active">
+                                <td class="fw-bold text-dark">Pro-Rated Gross Salary Earned</td>
+                                <td class="fw-bold text-success fs-5">₹{{ pro_rated_salary|floatformat:2 }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold bg-light">Estimated Statutory Tax / TDS Deduction</td>
+                                <td class="text-danger">₹{{ tds_estimate|floatformat:2 }}</td>
+                            </tr>
+                            <tr class="table-success">
+                                <td class="fw-bold text-dark fs-5">NET PAYABLE FnF SETTLEMENT</td>
+                                <td class="fw-bold text-success fs-4">₹{{ net_payable|floatformat:2 }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="p-3 bg-light rounded border text-muted small mb-4">
+                    <i class="fas fa-info-circle text-primary me-2"></i>
+                    This Full & Final (FnF) statement calculates the pro-rated earnings based on active days worked in the departure month. All company assets and portal permissions have been revoked.
+                </div>
+
+                <div class="d-flex justify-content-between align-items-center">
+                    <button type="button" onclick="window.print()" class="btn btn-outline-primary">
+                        <i class="fas fa-print me-1"></i> Print / Save Statement
+                    </button>
+                    <a href="{% url 'employee_list' %}" class="btn btn-secondary px-4">Done</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

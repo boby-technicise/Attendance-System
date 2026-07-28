@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="navbar-custom d-flex justify-content-between align-items-center mb-3">
+    <div>
+        <h4 class="mb-1 fw-bold"><i class="fas fa-id-card text-primary me-2"></i>My Employee Profile</h4>
+        <div class="small">View your employee record and current month attendance</div>
+    </div>
+    <div>
+        <a href="{% url 'change_password' %}" class="btn btn-sm btn-outline-warning">
+            <i class="fas fa-key me-1"></i>Change Password
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: User Summary Card -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm text-center p-4">
+            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center mx-auto mb-3 fw-bold fs-2" style="width: 80px; height: 80px;">
+                {{ employee.user.first_name|make_list|first|upper|default:employee.user.username|make_list|first|upper }}
+            </div>
+            <h5 class="fw-bold text-dark mb-1">{{ employee.user.get_full_name|default:employee.user.username }}</h5>
+            <p class="text-muted small mb-2">{{ employee.user.email }}</p>
+            <div class="d-flex justify-content-center gap-2 mb-3">
+                <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">{{ employee.employee_id }}</span>
+                <span class="badge bg-primary bg-opacity-10 text-primary border px-2 py-1">{{ employee.designation }}</span>
+            </div>
+            
+            <hr class="my-3">
+            
+            <div class="text-start">
+                <div class="mb-2">
+                    <span class="text-muted small d-block">DEPARTMENT</span>
+                    <span class="fw-semibold text-dark">{{ employee.department|default:"General" }}</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted small d-block">PHONE NUMBER</span>
+                    <span class="fw-semibold text-dark">{{ employee.phone_number|default:"Not Provided" }}</span>
+                </div>
+                <div class="mb-2">
+                    <span class="text-muted small d-block">HIRING DATE</span>
+                    <span class="fw-semibold text-dark">{{ employee.date_of_hiring|date:"d M Y"|default:"Not Provided" }}</span>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">MONTHLY SALARY</span>
+                    <span class="fw-bold text-success">₹{{ employee.monthly_salary|floatformat:2 }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Attendance Overview & Detailed Tabs -->
+    <div class="col-md-8">
+        <!-- Monthly Summary Badges -->
+        <div class="row g-3 mb-4">
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center p-3 bg-success bg-opacity-10">
+                    <div class="text-success fw-bold fs-4">{{ present_count }}</div>
+                    <div class="small text-muted font-monospace">PRESENT</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center p-3 bg-danger bg-opacity-10">
+                    <div class="text-danger fw-bold fs-4">{{ absent_count }}</div>
+                    <div class="small text-muted font-monospace">ABSENT</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center p-3 bg-warning bg-opacity-10">
+                    <div class="text-warning text-dark fw-bold fs-4">{{ leave_count }}</div>
+                    <div class="small text-muted font-monospace">LEAVES</div>
+                </div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm text-center p-3 bg-info bg-opacity-10">
+                    <div class="text-info text-dark fw-bold fs-4">{{ half_day_count }}</div>
+                    <div class="small text-muted font-monospace">HALF DAY</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Attendance Logs Card -->
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-light border-bottom d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold text-dark mb-0"><i class="fas fa-calendar-check text-primary me-2"></i>Current Month Attendance Log</h6>
+                <a href="{% url 'mark_attendance' %}" class="btn btn-sm btn-primary">Check In / Out</a>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-4">Date</th>
+                                <th>Status</th>
+                                <th>In Time</th>
+                                <th>Out Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for rec in attendance_records %}
+                            <tr>
+                                <td class="ps-4 fw-semibold">{{ rec.date|date:"d M Y (D)" }}</td>
+                                <td>
+                                    {% if rec.status == 'PRESENT' %}
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">Present</span>
+                                    {% elif rec.status == 'ABSENT' %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1">Absent</span>
+                                    {% elif rec.status == 'LEAVE' %}
+                                    <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1">Leave</span>
+                                    {% else %}
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1">Half Day</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ rec.time_in|time:"H:i"|default:"--" }}</td>
+                                <td>{{ rec.time_out|time:"H:i"|default:"--" }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="4" class="text-center py-4 text-muted">No attendance entries recorded for this month.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
