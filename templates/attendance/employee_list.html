@@ -4,12 +4,15 @@
 <div class="navbar-custom d-flex justify-content-between align-items-center mb-3">
     <div>
         <h4 class="mb-1 fw-bold">Employee Directory</h4>
-        <div class="text-muted small">Manage your team members</div>
+        <div class="small">Manage your team members</div>
     </div>
     {% if user.is_staff or user.is_superuser %}
     <div class="d-flex gap-2">
         <a href="/admin/auth/user/" target="_blank" class="btn btn-sm btn-outline-secondary">
             <i class="fas fa-external-link-alt me-1"></i>Django Admin
+        </a>
+        <a href="{% url 'create_employee' %}" class="btn btn-sm btn-outline-success">
+            <i class="fas fa-file-excel me-1"></i>Upload Excel Sheet
         </a>
         <a href="{% url 'create_employee' %}" class="btn btn-sm btn-primary">
             <i class="fas fa-user-plus me-1"></i>Add Employee

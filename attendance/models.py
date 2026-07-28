@@ -3,18 +3,39 @@ from django.contrib.auth.models import User
 
 class Employee(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    employee_id = models.CharField(max_length=20, unique=True)
+    employee_id = models.CharField(max_length=50, unique=True)
     department = models.CharField(max_length=100, blank=True, default='General')
     designation = models.CharField(max_length=100, blank=True, default='Staff')
-    phone_number = models.CharField(max_length=20, blank=True, null=True)
+    phone_number = models.CharField(max_length=30, blank=True, null=True)
     address = models.TextField(blank=True, null=True)
-    monthly_salary = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    monthly_salary = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     
+    # Extended Onboarding Fields
+    date_of_hiring = models.DateField(blank=True, null=True)
+    pt_location = models.CharField(max_length=100, blank=True, null=True)
+    annual_ctc = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    pan_number = models.CharField(max_length=20, blank=True, null=True)
+    provident_fund = models.BooleanField(default=False)
+    pf_uan = models.CharField(max_length=30, blank=True, null=True)
+    esic_number = models.CharField(max_length=30, blank=True, null=True)
+    gender = models.CharField(max_length=20, blank=True, null=True)
+    date_of_birth = models.DateField(blank=True, null=True)
+    bank_account_number = models.CharField(max_length=50, blank=True, null=True)
+    bank_ifsc_code = models.CharField(max_length=20, blank=True, null=True)
+    
+    # Financial/Tax History Fields
+    taxable_salary_current_fy = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    exemptions_current_fy = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    tds_deducted_current_fy = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    past_taxable_salary = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    past_tds = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+
     def __str__(self):
         name = self.user.get_full_name()
         if not name:
             name = self.user.username
         return f"{name} ({self.employee_id})"
+
 
 class Attendance(models.Model):
     STATUS_CHOICES = [

@@ -1,110 +1,249 @@
 {% extends 'base.html' %}
 
-{% block title %}Add New Employee | Premium Admin Portal{% endblock %}
+{% block title %}Add New Employee | Admin Portal{% endblock %}
 
 {% block content %}
-
-<!-- Header -->
 <div class="d-flex align-items-center justify-content-between mb-4">
     <div>
         <div class="d-flex align-items-center gap-3 mb-1">
-            <h4 class="text-white fw-bold mb-0" style="letter-spacing:0.5px;">Add New Employee</h4>
-            <span class="badge rounded-pill px-3 py-1" style="background:rgba(236,72,153,0.15); border:1px solid rgba(236,72,153,0.3); color:#ec4899; font-size:0.8rem; font-weight:600;">
+            <h4 class="mb-0 fw-bold">Employee Onboarding</h4>
+            <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-1 border border-primary border-opacity-25">
                 <i class="fas fa-user-plus me-1"></i> Admin Portal
             </span>
         </div>
-        <p class="text-white-50 mb-0" style="font-size:0.95rem;">Create a new employee account so they can log in to the portal</p>
+        <p class="text-muted mb-0 small">Create single employee account manually or bulk import via Excel spreadsheet.</p>
     </div>
-    <a href="{% url 'manage_leaves' %}" class="btn btn-glass px-4"><i class="fas fa-arrow-left me-2"></i>Back to Approvals</a>
+    <a href="{% url 'employee_list' %}" class="btn btn-sm btn-outline-secondary">
+        <i class="fas fa-arrow-left me-1"></i>Back to Directory
+    </a>
 </div>
 
-<div class="row justify-content-center">
-    <div class="col-lg-10">
-        <div class="glass-panel rounded-4 p-4 p-md-5">
-            <form method="post">
-                {% csrf_token %}
-                
-                <!-- Personal Information -->
-                <div class="mb-4">
-                    <h6 class="text-white fw-bold mb-3 text-uppercase" style="font-size:0.8rem; letter-spacing:1px; color:#a5b4fc;">
-                        <i class="fas fa-id-card me-2"></i>Personal Details
-                    </h6>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">FIRST NAME *</label>
-                            <input type="text" name="first_name" required value="{{ request_data.first_name|default:'' }}" class="form-control" placeholder="e.g. Sarah" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px;">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">LAST NAME</label>
-                            <input type="text" name="last_name" value="{{ request_data.last_name|default:'' }}" class="form-control" placeholder="e.g. Connor" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px;">
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white border-bottom-0 pt-3 px-4">
+        <ul class="nav nav-tabs card-header-tabs" id="onboardingTab" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active fw-semibold" id="manual-tab" data-bs-toggle="tab" data-bs-target="#manual-tab-pane" type="button" role="tab" aria-controls="manual-tab-pane" aria-selected="true">
+                    <i class="fas fa-user-plus me-2"></i>Single Employee Form
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link fw-semibold text-success" id="excel-tab" data-bs-toggle="tab" data-bs-target="#excel-tab-pane" type="button" role="tab" aria-controls="excel-tab-pane" aria-selected="false">
+                    <i class="fas fa-file-excel me-2"></i>Bulk Excel Sheet Upload
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <div class="card-body p-4">
+        <div class="tab-content" id="onboardingTabContent">
+            
+            <!-- TAB 1: MANUAL SINGLE CREATION FORM -->
+            <div class="tab-pane fade show active" id="manual-tab-pane" role="tabpanel" aria-labelledby="manual-tab" tabindex="0">
+                <form method="post" action="{% url 'create_employee' %}">
+                    {% csrf_token %}
+                    
+                    <!-- Basic Information -->
+                    <div class="mb-4">
+                        <h6 class="fw-bold mb-3 text-uppercase text-primary" style="font-size:0.8rem; letter-spacing:0.5px;">
+                            <i class="fas fa-id-card me-2"></i>Basic & Account Details
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">FIRST NAME *</label>
+                                <input type="text" name="first_name" required value="{{ request_data.first_name|default:'' }}" class="form-control" placeholder="e.g. Abhijit">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">LAST NAME</label>
+                                <input type="text" name="last_name" value="{{ request_data.last_name|default:'' }}" class="form-control" placeholder="e.g. Pradhan">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label small fw-semibold">EMPLOYEE ID (Optional)</label>
+                                <input type="text" name="employee_id" value="{{ request_data.employee_id|default:'' }}" class="form-control" placeholder="e.g. TSTPL01032020-01">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">EMAIL ADDRESS (LOGIN USERNAME) *</label>
+                                <input type="email" name="email" required value="{{ request_data.email|default:'' }}" class="form-control" placeholder="e.g. abhijit@technicise.in">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-semibold">LOGIN PASSWORD *</label>
+                                <input type="password" name="password" required class="form-control" placeholder="Set default initial password">
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Account Credentials -->
-                <div class="mb-4 pt-3 border-top" style="border-color:var(--glass-border) !important;">
-                    <h6 class="text-white fw-bold mb-3 text-uppercase" style="font-size:0.8rem; letter-spacing:1px; color:#a5b4fc;">
-                        <i class="fas fa-key me-2"></i>Login Credentials
-                    </h6>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">EMAIL ADDRESS (LOGIN USERNAME) *</label>
-                            <input type="email" name="email" required value="{{ request_data.email|default:'' }}" class="form-control" placeholder="e.g. sarah@company.com" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px;">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">LOGIN PASSWORD *</label>
-                            <input type="password" name="password" required class="form-control" placeholder="Set a temporary password" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px;">
+                    <!-- Job & Location Details -->
+                    <div class="mb-4 pt-3 border-top">
+                        <h6 class="fw-bold mb-3 text-uppercase text-primary" style="font-size:0.8rem; letter-spacing:0.5px;">
+                            <i class="fas fa-briefcase me-2"></i>Job & Employment Details
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">TITLE / DESIGNATION</label>
+                                <input type="text" name="designation" value="{{ request_data.designation|default:'' }}" class="form-control" placeholder="e.g. Software Engineer">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">DEPARTMENT</label>
+                                <input type="text" name="department" value="{{ request_data.department|default:'' }}" class="form-control" placeholder="e.g. Engineering">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">DATE OF HIRING</label>
+                                <input type="date" name="date_of_hiring" value="{{ request_data.date_of_hiring|default:'' }}" class="form-control">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">PT LOCATION (STATE)</label>
+                                <input type="text" name="pt_location" value="{{ request_data.pt_location|default:'West Bengal' }}" class="form-control" placeholder="e.g. West Bengal">
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Contact Information -->
-                <div class="mb-4 pt-3 border-top" style="border-color:var(--glass-border) !important;">
-                    <h6 class="text-white fw-bold mb-3 text-uppercase" style="font-size:0.8rem; letter-spacing:1px; color:#a5b4fc;">
-                        <i class="fas fa-phone-alt me-2"></i>Contact Details
-                    </h6>
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">PHONE NUMBER</label>
-                            <input type="text" name="phone_number" value="{{ request_data.phone_number|default:'' }}" class="form-control" placeholder="e.g. +1 555-0199" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px;">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">ADDRESS</label>
-                            <textarea name="address" rows="1" class="form-control" placeholder="e.g. 123 Main St, City, Country" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px; resize:none;">{{ request_data.address|default:'' }}</textarea>
+                    <!-- Tax & Compensation Details -->
+                    <div class="mb-4 pt-3 border-top">
+                        <h6 class="fw-bold mb-3 text-uppercase text-primary" style="font-size:0.8rem; letter-spacing:0.5px;">
+                            <i class="fas fa-calculator me-2"></i>Compensation & Tax Information
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">ANNUAL CTC (₹) *</label>
+                                <input type="number" step="0.01" name="annual_ctc" value="{{ request_data.annual_ctc|default:'360000' }}" class="form-control" placeholder="e.g. 360000">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">PAN NUMBER *</label>
+                                <input type="text" name="pan_number" value="{{ request_data.pan_number|default:'' }}" class="form-control" placeholder="e.g. DUPP4833C">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold d-block">PROVIDENT FUND?</label>
+                                <div class="form-check form-switch mt-2">
+                                    <input class="form-check-input" type="checkbox" name="provident_fund" id="pfSwitch" {% if request_data.provident_fund %}checked{% endif %}>
+                                    <label class="form-check-label small" for="pfSwitch">Yes (Y)</label>
+                                </div>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold">PF UAN</label>
+                                <input type="text" name="pf_uan" value="{{ request_data.pf_uan|default:'' }}" class="form-control" placeholder="UAN Number">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold">ESIC NUMBER</label>
+                                <input type="text" name="esic_number" value="{{ request_data.esic_number|default:'' }}" class="form-control" placeholder="ESIC Number">
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <!-- Job & Compensation Details -->
-                <div class="mb-5 pt-3 border-top" style="border-color:var(--glass-border) !important;">
-                    <h6 class="text-white fw-bold mb-3 text-uppercase" style="font-size:0.8rem; letter-spacing:1px; color:#a5b4fc;">
-                        <i class="fas fa-briefcase me-2"></i>Job & Compensation
-                    </h6>
-                    <div class="row g-3">
+                    <!-- Personal & Bank Details -->
+                    <div class="mb-4 pt-3 border-top">
+                        <h6 class="fw-bold mb-3 text-uppercase text-primary" style="font-size:0.8rem; letter-spacing:0.5px;">
+                            <i class="fas fa-university me-2"></i>Personal & Bank Details
+                        </h6>
+                        <div class="row g-3">
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold">GENDER</label>
+                                <select name="gender" class="form-select">
+                                    <option value="M">Male (M)</option>
+                                    <option value="F">Female (F)</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold">DATE OF BIRTH</label>
+                                <input type="date" name="date_of_birth" value="{{ request_data.date_of_birth|default:'' }}" class="form-control">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">PHONE NUMBER</label>
+                                <input type="text" name="phone_number" value="{{ request_data.phone_number|default:'' }}" class="form-control" placeholder="+91 9876543210">
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label small fw-semibold">BANK ACCOUNT NUMBER</label>
+                                <input type="text" name="bank_account_number" value="{{ request_data.bank_account_number|default:'' }}" class="form-control" placeholder="50100428487710">
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label small fw-semibold">BANK IFSC CODE</label>
+                                <input type="text" name="bank_ifsc_code" value="{{ request_data.bank_ifsc_code|default:'' }}" class="form-control" placeholder="HDFC0000352">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+                        <a href="{% url 'employee_list' %}" class="btn btn-secondary px-4">Cancel</a>
+                        <button type="submit" class="btn btn-primary px-4 fw-bold">
+                            <i class="fas fa-user-check me-1"></i>Create Employee Account
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- TAB 2: BULK EXCEL SHEET UPLOAD -->
+            <div class="tab-pane fade" id="excel-tab-pane" role="tabpanel" aria-labelledby="excel-tab" tabindex="0">
+                <form method="post" action="{% url 'upload_employees' %}" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    
+                    <div class="alert alert-info border-0 bg-info bg-opacity-10 text-dark p-3 mb-4 rounded">
+                        <h6 class="fw-bold mb-2 text-info"><i class="fas fa-file-excel me-2"></i>Technicise Payroll Onboarding Spreadsheet Compatibility</h6>
+                        <p class="mb-1 small">
+                            You can directly upload your standard <strong>Technicise-Payroll-Onboarding-v1-*.xlsx</strong> file. 
+                        </p>
+                        <p class="mb-0 small text-muted">
+                            Supported columns: <code>Employee ID</code>, <code>Name *</code>, <code>Email *</code>, <code>Date of Hiring *</code>, <code>Professional Tax Location *</code>, <code>Title</code>, <code>Department</code>, <code>Annual CTC *</code>, <code>PAN *</code>, <code>Provident Fund?</code>, <code>PF UAN</code>, <code>ESIC Number</code>, <code>Phone Number</code>, <code>Gender</code>, <code>Date of Birth</code>, <code>Bank Account Number</code>, <code>Bank IFSC Code</code>.
+                        </p>
+                    </div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">SELECT EXCEL FILE (.xlsx) *</label>
+                            <input type="file" name="excel_file" accept=".xlsx, .xls" required class="form-control form-control-lg">
+                            <small class="text-muted">Choose your <code>.xlsx</code> employee onboarding sheet.</small>
+                        </div>
                         <div class="col-md-4">
-                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">DEPARTMENT</label>
-                            <input type="text" name="department" value="{{ request_data.department|default:'Engineering' }}" class="form-control" placeholder="e.g. Engineering" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px;">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">DESIGNATION</label>
-                            <input type="text" name="designation" value="{{ request_data.designation|default:'Software Engineer' }}" class="form-control" placeholder="e.g. Software Engineer" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px;">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label text-white-50 fw-medium" style="font-size:0.85rem; letter-spacing:0.5px;">MONTHLY BASE SALARY (₹)</label>
-                            <input type="number" step="0.01" name="monthly_salary" value="{{ request_data.monthly_salary|default:'45000' }}" class="form-control" placeholder="e.g. 45000" style="background:rgba(255,255,255,0.05); border:1px solid var(--glass-border); color:white; border-radius:10px; padding:10px 14px;">
+                            <label class="form-label fw-bold">DEFAULT PASSWORD FOR NEW USERS</label>
+                            <input type="text" name="default_password" value="Emp@12345" class="form-control form-control-lg" placeholder="Emp@12345">
+                            <small class="text-muted">New users will log in with this password initially.</small>
                         </div>
                     </div>
-                </div>
 
-                <div class="d-flex justify-content-end gap-3">
-                    <a href="{% url 'manage_leaves' %}" class="btn btn-glass px-4 py-2">Cancel</a>
-                    <button type="submit" class="btn btn-vibrant px-5 py-2 fw-bold">
-                        <i class="fas fa-user-check me-2"></i>Create Employee Account
-                    </button>
-                </div>
-            </form>
+                    <div class="p-3 bg-light rounded border mb-4">
+                        <h6 class="fw-bold mb-2 small text-uppercase text-muted">Expected Column Schema (Sheet: "Employee Data")</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered mb-0 bg-white small text-center">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Employee ID</th>
+                                        <th>Name *</th>
+                                        <th>Email *</th>
+                                        <th>Date of Hiring *</th>
+                                        <th>PT Location *</th>
+                                        <th>Department</th>
+                                        <th>Annual CTC *</th>
+                                        <th>PAN *</th>
+                                        <th>Bank Account</th>
+                                        <th>Bank IFSC</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr class="text-muted">
+                                        <td>TSTPL05042022-01</td>
+                                        <td>Abdul Hai Shah</td>
+                                        <td>abdul@technicise.in</td>
+                                        <td>05/04/2022</td>
+                                        <td>West Bengal</td>
+                                        <td>Engineering</td>
+                                        <td>360000</td>
+                                        <td>NPZPS92300</td>
+                                        <td>50100428487710</td>
+                                        <td>HDFC0000352</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 pt-2">
+                        <a href="{% url 'employee_list' %}" class="btn btn-secondary px-4">Cancel</a>
+                        <button type="submit" class="btn btn-success px-5 fw-bold">
+                            <i class="fas fa-cloud-upload-alt me-2"></i>Upload & Process Excel Sheet
+                        </button>
+                    </div>
+                </form>
+            </div>
+
         </div>
     </div>
 </div>
-
 {% endblock %}
