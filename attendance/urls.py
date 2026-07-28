@@ -8,6 +8,7 @@ urlpatterns = [
     path('leave/manage/', views.ManageLeavesView.as_view(), name='manage_leaves'),
     path('salary/', views.SalaryView.as_view(), name='salary'),
     path('reports/', views.AttendanceReportView.as_view(), name='attendance_report'),
+    path('reports/export/', views.ExportAttendanceReportView.as_view(), name='export_attendance_report'),
     path('employees/', views.EmployeeListView.as_view(), name='employee_list'),
     path('employees/create/', views.CreateEmployeeView.as_view(), name='create_employee'),
     path('employees/upload/', views.BulkUploadEmployeeView.as_view(), name='upload_employees'),

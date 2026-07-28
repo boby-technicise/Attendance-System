@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from datetime import datetime, date, timedelta
 
 class Employee(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -59,6 +60,22 @@ class Attendance(models.Model):
 
     def __str__(self):
         return f"{self.employee.user.username} - {self.date} - {self.get_status_display()}"
+
+    @property
+    def total_working_hours(self):
+        if self.time_in and self.time_out:
+            dummy_date = date(2000, 1, 1)
+            datetime_in = datetime.combine(dummy_date, self.time_in)
+            datetime_out = datetime.combine(dummy_date, self.time_out)
+            if datetime_out < datetime_in:
+                datetime_out += timedelta(days=1)
+            duration = datetime_out - datetime_in
+            total_seconds = int(duration.total_seconds())
+            hours = total_seconds // 3600
+            minutes = (total_seconds % 3600) // 60
+            return f"{hours}h {minutes}m"
+        return "--"
+
 
 
 class LeaveRequest(models.Model):

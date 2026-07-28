@@ -1,90 +1,161 @@
 {% extends 'base.html' %}
 
+{% block title %}Monthly Attendance Reports | Premium Payroll{% endblock %}
+
 {% block content %}
-<div class="navbar-custom d-flex justify-content-between align-items-center">
+<!-- Top Header & Export -->
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between mb-4 gap-3">
     <div>
-        <h4 class="mb-1 text-dark fw-bold">Attendance Reports</h4>
-        <div class="text-muted small">View historical attendance data</div>
+        <h4 class="text-white fw-bold mb-1" style="letter-spacing:0.5px;">
+            <i class="fas fa-file-alt me-2" style="color: #60a5fa;"></i>Monthly Attendance Report
+        </h4>
+        <p class="text-white-50 mb-0" style="font-size:0.95rem;">
+            View and download individual and bulk employee attendance records
+        </p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'export_attendance_report' %}?month={{ selected_month }}&employee={{ selected_employee }}" class="btn btn-vibrant px-4 py-2 text-decoration-none fw-bold" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);">
+            <i class="fas fa-file-excel me-2"></i>Download Excel Report
+        </a>
     </div>
 </div>
 
-<div class="card mb-4">
-    <div class="card-body">
-        <form method="get" class="row g-3 align-items-end">
-            <div class="col-md-4">
-                <label class="form-label fw-medium text-muted small">Filter by Month</label>
-                <input type="month" name="month" class="form-control" value="{{ selected_month }}">
-            </div>
-            <div class="col-md-5">
-                <label class="form-label fw-medium text-muted small">Filter by Employee</label>
-                <select name="employee" class="form-select">
-                    <option value="">All Employees</option>
-                    {% for emp in employees %}
-                    <option value="{{ emp.id }}" {% if selected_employee == emp.id|stringformat:"s" %}selected{% endif %}>
-                        {{ emp.user.get_full_name|default:emp.user.username }} ({{ emp.employee_id }})
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
-            <div class="col-md-3">
-                <button type="submit" class="btn btn-primary w-100 fw-bold shadow-sm"><i class="fas fa-filter me-2"></i> Apply Filters</button>
-            </div>
-        </form>
+<!-- Filters Card -->
+<div class="glass-panel rounded-4 p-4 mb-4">
+    <form method="get" class="row g-3 align-items-end">
+        <div class="col-md-5">
+            <label class="form-label text-white-50 fw-medium small mb-1">
+                <i class="far fa-calendar-alt me-1 text-info"></i>Select Month
+            </label>
+            <input type="month" name="month" class="form-control glass-panel text-white border-secondary border-opacity-50" value="{{ selected_month }}" style="background: rgba(255,255,255,0.05); color: white;">
+        </div>
+        {% if user.is_staff or user.is_superuser %}
+        <div class="col-md-5">
+            <label class="form-label text-white-50 fw-medium small mb-1">
+                <i class="fas fa-user me-1 text-info"></i>Select Employee
+            </label>
+            <select name="employee" class="form-select glass-panel text-white border-secondary border-opacity-50" style="background: rgba(15,23,42,0.9); color: white;">
+                <option value="" style="background: #0f172a; color: white;">All Employees</option>
+                {% for emp in employees %}
+                <option value="{{ emp.id }}" {% if selected_employee == emp.id|stringformat:"s" %}selected{% endif %} style="background: #0f172a; color: white;">
+                    {{ emp.user.get_full_name|default:emp.user.username }} ({{ emp.employee_id }})
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% else %}
+        <div class="col-md-5"></div>
+        {% endif %}
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-vibrant w-100 fw-bold">
+                <i class="fas fa-filter me-1"></i> Filter
+            </button>
+        </div>
+    </form>
+</div>
+
+<!-- Metrics Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md">
+        <div class="glass-panel rounded-4 p-3 text-center">
+            <div class="text-white-50 small font-monospace">TOTAL LOGS</div>
+            <div class="text-white fw-bold fs-4">{{ total_records }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="glass-panel rounded-4 p-3 text-center" style="background: rgba(52,211,153,0.1);">
+            <div class="text-success small font-monospace">PRESENT</div>
+            <div class="text-success fw-bold fs-4">{{ present_count }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="glass-panel rounded-4 p-3 text-center" style="background: rgba(248,113,113,0.1);">
+            <div class="text-danger small font-monospace">ABSENT</div>
+            <div class="text-danger fw-bold fs-4">{{ absent_count }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="glass-panel rounded-4 p-3 text-center" style="background: rgba(251,191,36,0.1);">
+            <div class="text-warning small font-monospace">LEAVES</div>
+            <div class="text-warning fw-bold fs-4">{{ leave_count }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="glass-panel rounded-4 p-3 text-center" style="background: rgba(99,102,241,0.1);">
+            <div class="text-info small font-monospace">HALF DAYS</div>
+            <div class="text-info fw-bold fs-4">{{ half_day_count }}</div>
+        </div>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-body p-0">
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0 border-top">
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-4 fw-medium text-muted" style="font-size: 0.85rem;">Date</th>
-                        <th class="fw-medium text-muted" style="font-size: 0.85rem;">Employee</th>
-                        <th class="fw-medium text-muted" style="font-size: 0.85rem;">Status</th>
-                        <th class="fw-medium text-muted" style="font-size: 0.85rem;">Time In</th>
-                        <th class="fw-medium text-muted" style="font-size: 0.85rem;">Time Out</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for record in attendance_records %}
-                    <tr>
-                        <td class="ps-4 fw-medium text-dark py-3">{{ record.date|date:"M j, Y" }}</td>
-                        <td>
-                            <div class="d-flex align-items-center">
-                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center me-3 fw-bold" style="width: 32px; height: 32px; font-size: 0.8rem;">
-                                    {{ record.employee.user.first_name|make_list|first|upper|default:record.employee.user.username|make_list|first|upper }}
+<!-- Attendance Table -->
+<div class="glass-panel rounded-4 p-4">
+    <div class="table-responsive">
+        <table class="table table-dark table-borderless align-middle mb-0" style="background: transparent !important; --bs-table-bg: transparent; color: var(--text-main);">
+            <thead>
+                <tr style="border-bottom:1px solid var(--glass-border);">
+                    <th class="text-white-50 fw-medium pb-3 ps-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">SL</th>
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">DATE</th>
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">EMPLOYEE</th>
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">STATUS</th>
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">CHECK IN</th>
+                    <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">CHECK OUT</th>
+                    <th class="text-white-50 fw-medium pb-3 text-center" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">TOTAL WORKING</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in attendance_records %}
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.03);">
+                    <td class="py-3 ps-3 text-white-50 small" style="background:transparent;">{{ forloop.counter }}</td>
+                    <td class="py-3 text-white fw-medium" style="background:transparent;">{{ record.date|date:"d M, Y (D)" }}</td>
+                    <td class="py-3" style="background:transparent;">
+                        <div class="d-flex align-items-center">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center me-2 text-white fw-bold" style="width: 32px; height: 32px; font-size: 0.8rem; background: var(--gradient-primary);">
+                                {{ record.employee.user.username|make_list|first|upper }}
+                            </div>
+                            <div>
+                                <div class="text-white fw-semibold" style="font-size:0.9rem;">
+                                    {{ record.employee.user.get_full_name|default:record.employee.user.username }}
                                 </div>
-                                <div>
-                                    <h6 class="mb-0 fw-medium text-dark" style="font-size: 0.9rem;">{{ record.employee.user.get_full_name|default:record.employee.user.username }}</h6>
+                                <div class="text-white-50 small" style="font-size:0.75rem;">
+                                    ID: {{ record.employee.employee_id }} • {{ record.employee.department }}
                                 </div>
                             </div>
-                        </td>
-                        <td>
-                            {% if record.status == 'PRESENT' %}
-                                <span class="badge bg-success bg-opacity-10 text-success px-3 py-2 rounded-pill border border-success border-opacity-25">Present</span>
-                            {% elif record.status == 'ABSENT' %}
-                                <span class="badge bg-danger bg-opacity-10 text-danger px-3 py-2 rounded-pill border border-danger border-opacity-25">Absent</span>
-                            {% elif record.status == 'LEAVE' %}
-                                <span class="badge bg-warning bg-opacity-10 text-warning px-3 py-2 rounded-pill border border-warning border-opacity-25">Leave</span>
-                            {% else %}
-                                <span class="badge bg-info bg-opacity-10 text-info px-3 py-2 rounded-pill border border-info border-opacity-25">Half Day</span>
-                            {% endif %}
-                        </td>
-                        <td>{{ record.time_in|time:"H:i A"|default:"-" }}</td>
-                        <td>{{ record.time_out|time:"H:i A"|default:"-" }}</td>
-                    </tr>
-                    {% empty %}
-                    <tr>
-                        <td colspan="5" class="text-center py-5 text-muted">
-                            <i class="fas fa-file-alt fa-3x mb-3 text-light"></i>
-                            <p class="mb-0">No attendance records found matching criteria.</p>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
+                        </div>
+                    </td>
+                    <td class="py-3" style="background:transparent;">
+                        {% if record.status == 'PRESENT' %}
+                            <span class="badge rounded-pill px-3 py-1" style="background:rgba(52,211,153,0.1);border:1px solid rgba(52,211,153,0.3);color:#34d399;font-size:0.8rem;">Present</span>
+                        {% elif record.status == 'ABSENT' %}
+                            <span class="badge rounded-pill px-3 py-1" style="background:rgba(248,113,113,0.1);border:1px solid rgba(248,113,113,0.3);color:#f87171;font-size:0.8rem;">Absent</span>
+                        {% elif record.status == 'LEAVE' %}
+                            <span class="badge rounded-pill px-3 py-1" style="background:rgba(251,191,36,0.1);border:1px solid rgba(251,191,36,0.3);color:#fbbf24;font-size:0.8rem;">Leave</span>
+                        {% else %}
+                            <span class="badge rounded-pill px-3 py-1" style="background:rgba(99,102,241,0.1);border:1px solid rgba(99,102,241,0.3);color:#818cf8;font-size:0.8rem;">Half Day</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 text-white-50" style="background:transparent;">{{ record.time_in|time:"H:i"|default:"—" }}</td>
+                    <td class="py-3 text-white-50" style="background:transparent;">{{ record.time_out|time:"H:i"|default:"—" }}</td>
+                    <td class="py-3 text-center" style="background:transparent;">
+                        {% if record.time_in and record.time_out %}
+                        <span class="badge rounded-pill px-3 py-1" style="background:rgba(236,72,153,0.15); border:1px solid rgba(236,72,153,0.3); color:#f472b6; font-size:0.8rem;">
+                            <i class="fas fa-stopwatch me-1"></i>{{ record.total_working_hours }}
+                        </span>
+                        {% else %}
+                        <span class="text-white-50">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center py-5 text-white-50">
+                        <i class="fas fa-calendar-times fa-3x mb-3 opacity-50"></i>
+                        <p class="mb-0">No attendance records found matching criteria.</p>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
 {% endblock %}

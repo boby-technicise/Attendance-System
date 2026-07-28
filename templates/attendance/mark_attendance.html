@@ -37,9 +37,9 @@
                 </a>
             </div>
             {% if has_checked_out and working_hours %}
-            <div class="text-white mt-3 px-4 py-2 rounded-pill" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); font-size: 0.95rem;">
+            <!-- <div class="text-white mt-3 px-4 py-2 rounded-pill" style="background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border); font-size: 0.95rem;">
                 <i class="fas fa-stopwatch me-2" style="color: #a5b4fc;"></i> Total hours: <span class="fw-bold" style="color: #f472b6;">{{ working_hours }}h</span>
-            </div>
+            </div> -->
             {% endif %}
         </div>
     </div>
@@ -138,6 +138,7 @@
                     <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">STATUS</th>
                     <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">CHECK IN</th>
                     <th class="text-white-50 fw-medium pb-3" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">CHECK OUT</th>
+                    <th class="text-white-50 fw-medium pb-3 text-center" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">TOTAL WORKING</th>
                     <th class="text-white-50 fw-medium pb-3 text-end" style="font-size:0.8rem; letter-spacing:0.5px; background:transparent;">PAYABLE</th>
                 </tr>
             </thead>
@@ -158,6 +159,15 @@
                 </td>
                 <td class="py-3 text-white-50" style="background:transparent;">{{ rec.time_in|time:"H:i"|default:"—" }}</td>
                 <td class="py-3 text-white-50" style="background:transparent;">{{ rec.time_out|time:"H:i"|default:"—" }}</td>
+                <td class="py-3 text-center" style="background:transparent;">
+                    {% if rec.time_in and rec.time_out %}
+                    <span class="badge rounded-pill px-3 py-1" style="background:rgba(236,72,153,0.15); border:1px solid rgba(236,72,153,0.3); color:#f472b6; font-size:0.8rem;">
+                        <i class="fas fa-stopwatch me-1"></i>{{ rec.total_working_hours }}
+                    </span>
+                    {% else %}
+                    <span class="text-white-50">—</span>
+                    {% endif %}
+                </td>
                 <td class="py-3 text-end fw-bold" style="background:transparent; {% if rec.status == 'PRESENT' or rec.status == 'LEAVE' %}color:#34d399;{% elif rec.status == 'HALF_DAY' %}color:#fbbf24;{% else %}color:#f87171;{% endif %}">
                     {% if rec.status == 'PRESENT' or rec.status == 'LEAVE' %}1.0 day
                     {% elif rec.status == 'HALF_DAY' %}0.5 day

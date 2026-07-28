@@ -310,7 +310,7 @@
             </a>
             <a href="{% url 'mark_attendance' %}" class="{% if request.resolver_match.url_name == 'mark_attendance' or request.resolver_match.url_name == 'apply_leave' %}active{% endif %}">
                 <i class="far fa-calendar-alt"></i> Attendance
-            </a>
+            </a>            
 
             <a href="{% url 'employee_profile' %}" class="{% if request.resolver_match.url_name == 'employee_profile' %}active{% endif %}">
                 <i class="fas fa-user-circle"></i> My Profile
@@ -326,6 +326,9 @@
             </div>
             <a href="{% url 'manage_leaves' %}" class="{% if request.resolver_match.url_name == 'manage_leaves' %}active{% endif %}">
                 <i class="fas fa-check-circle" style="color: #34d399;"></i> Leave Approvals
+            </a>
+            <a href="{% url 'attendance_report' %}" class="{% if request.resolver_match.url_name == 'attendance_report' %}active{% endif %}">
+                <i class="fas fa-file-alt"></i> Attendance Reports
             </a>
             <a href="{% url 'create_employee' %}" class="{% if request.resolver_match.url_name == 'create_employee' %}active{% endif %}">
                 <i class="fas fa-user-plus" style="color: #a5b4fc;"></i> Add Employee

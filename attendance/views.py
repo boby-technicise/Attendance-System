@@ -244,24 +244,106 @@ class AttendanceReportView(LoginRequiredMixin, ListView):
     model = Attendance
     template_name = 'attendance/reports.html'
     context_object_name = 'attendance_records'
+    paginate_by = 100
 
     def get_queryset(self):
-        queryset = super().get_queryset()
+        queryset = Attendance.objects.select_related('employee', 'employee__user').all().order_by('-date', 'employee__employee_id')
+        
+        if not (self.request.user.is_staff or self.request.user.is_superuser):
+            queryset = queryset.filter(employee__user=self.request.user)
+
         month = self.request.GET.get('month')
         employee_id = self.request.GET.get('employee')
+
         if month:
-            year, m = month.split('-')
-            queryset = queryset.filter(date__year=year, date__month=m)
-        if employee_id:
+            try:
+                year, m = month.split('-')
+                queryset = queryset.filter(date__year=year, date__month=m)
+            except ValueError:
+                pass
+        else:
+            today = timezone.localtime().date()
+            queryset = queryset.filter(date__year=today.year, date__month=today.month)
+
+        if employee_id and (self.request.user.is_staff or self.request.user.is_superuser):
             queryset = queryset.filter(employee__id=employee_id)
+
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['employees'] = Employee.objects.all()
-        context['selected_month'] = self.request.GET.get('month', '')
+        context['employees'] = Employee.objects.select_related('user').all().order_by('employee_id')
+        today = timezone.localtime().date()
+        context['selected_month'] = self.request.GET.get('month', today.strftime('%Y-%m'))
         context['selected_employee'] = self.request.GET.get('employee', '')
+        
+        qs = self.get_queryset()
+        context['total_records'] = qs.count()
+        context['present_count'] = qs.filter(status='PRESENT').count()
+        context['absent_count'] = qs.filter(status='ABSENT').count()
+        context['leave_count'] = qs.filter(status='LEAVE').count()
+        context['half_day_count'] = qs.filter(status='HALF_DAY').count()
         return context
+
+
+class ExportAttendanceReportView(LoginRequiredMixin, View):
+    def get(self, request):
+        queryset = Attendance.objects.select_related('employee', 'employee__user').all().order_by('-date', 'employee__employee_id')
+        
+        if not (request.user.is_staff or request.user.is_superuser):
+            queryset = queryset.filter(employee__user=request.user)
+
+        month = request.GET.get('month')
+        employee_id = request.GET.get('employee')
+
+        if month:
+            try:
+                year, m = month.split('-')
+                queryset = queryset.filter(date__year=year, date__month=m)
+            except ValueError:
+                pass
+        else:
+            today = timezone.localtime().date()
+            queryset = queryset.filter(date__year=today.year, date__month=today.month)
+            month = today.strftime('%Y-%m')
+
+        if employee_id and (request.user.is_staff or request.user.is_superuser):
+            queryset = queryset.filter(employee__id=employee_id)
+
+        wb = openpyxl.Workbook()
+        ws = wb.active
+        ws.title = "Monthly Attendance Report"
+
+        headers = [
+            'Sl No', 'Date', 'Employee ID', 'Employee Name', 'Department',
+            'Designation', 'Status', 'Check In', 'Check Out', 'Total Working Hours'
+        ]
+        ws.append(headers)
+
+        for idx, rec in enumerate(queryset, start=1):
+            emp_name = rec.employee.user.get_full_name() or rec.employee.user.username
+            time_in_str = rec.time_in.strftime('%H:%M') if rec.time_in else '-'
+            time_out_str = rec.time_out.strftime('%H:%M') if rec.time_out else '-'
+
+            row = [
+                idx,
+                rec.date.strftime('%d/%m/%Y'),
+                rec.employee.employee_id,
+                emp_name,
+                rec.employee.department or '',
+                rec.employee.designation or '',
+                rec.get_status_display(),
+                time_in_str,
+                time_out_str,
+                rec.total_working_hours
+            ]
+            ws.append(row)
+
+        response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        filename = f"Monthly_Attendance_Report_{month}.xlsx"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        wb.save(response)
+        return response
 
 
 class ManageLeavesView(LoginRequiredMixin, View):
