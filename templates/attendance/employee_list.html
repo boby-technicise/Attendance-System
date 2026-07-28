@@ -43,12 +43,15 @@
                     <tr {% if not employee.user.is_active %}class="table-light text-muted" style="opacity:0.75;"{% endif %}>
                         <td class="ps-4 py-3 fw-semibold text-muted" style="font-size: 0.85rem;">{{ forloop.counter }}</td>
                         <td class="py-3">
-                            <div class="d-flex align-items-center">
-                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center me-3 fw-bold" style="width: 38px; height: 38px;">
+                            <div class="d-flex align-items-center" role="button" data-bs-toggle="modal" data-bs-target="#employeeDetailsModal{{ employee.user.id }}" title="Click to view full employee details">
+                                <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center me-3 fw-bold flex-shrink-0" style="width: 38px; height: 38px;">
                                     {{ employee.user.first_name|make_list|first|upper|default:employee.user.username|make_list|first|upper }}
                                 </div>
                                 <div>
-                                    <h6 class="mb-0 fw-medium text-dark">{{ employee.user.get_full_name|default:employee.user.username }}</h6>
+                                    <h6 class="mb-0 fw-bold text-dark text-primary-hover" style="cursor:pointer;">
+                                        {{ employee.user.get_full_name|default:employee.user.username }}
+                                        <i class="fas fa-info-circle ms-1 small text-muted opacity-75"></i>
+                                    </h6>
                                     <small class="text-muted">{{ employee.user.email }}</small>
                                 </div>
                             </div>
@@ -72,6 +75,10 @@
                         </td>
                         {% if user.is_staff or user.is_superuser %}
                         <td class="pe-4 py-3 text-end">
+                            <button type="button" class="btn btn-sm btn-outline-info px-2 py-1 me-1" data-bs-toggle="modal" data-bs-target="#employeeDetailsModal{{ employee.user.id }}" title="View Full Employee Details">
+                                <i class="fas fa-eye me-1"></i> Details
+                            </button>
+
                             <button type="button" class="btn btn-sm btn-outline-warning px-2 py-1" data-bs-toggle="modal" data-bs-target="#resetPasswordModal{{ employee.user.id }}" title="Reset Password">
                                 <i class="fas fa-key me-1"></i> Reset Password
                             </button>
@@ -195,6 +202,174 @@
                                                 </button>
                                             </div>
                                         </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Full Employee Details Modal -->
+                            <div class="modal fade" id="employeeDetailsModal{{ employee.user.id }}" tabindex="-1" aria-labelledby="empModalLabel{{ employee.user.id }}" aria-hidden="true">
+                                <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                                    <div class="modal-content text-start border-0 shadow">
+                                        <div class="modal-header bg-light border-bottom">
+                                            <div class="d-flex align-items-center gap-3">
+                                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-4" style="width: 48px; height: 48px;">
+                                                    {{ employee.user.first_name|make_list|first|upper|default:employee.user.username|make_list|first|upper }}
+                                                </div>
+                                                <div>
+                                                    <h5 class="modal-title fw-bold text-dark mb-0" id="empModalLabel{{ employee.user.id }}">
+                                                        {{ employee.user.get_full_name|default:employee.user.username }}
+                                                    </h5>
+                                                    <div class="d-flex align-items-center gap-2 mt-1">
+                                                        <span class="badge bg-secondary bg-opacity-25 text-dark fw-normal">{{ employee.employee_id }}</span>
+                                                        <span class="badge bg-primary bg-opacity-10 text-primary fw-normal">{{ employee.designation }}</span>
+                                                        {% if employee.user.is_active %}
+                                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25"><i class="fas fa-check-circle me-1"></i>Active</span>
+                                                        {% else %}
+                                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25"><i class="fas fa-user-slash me-1"></i>Left Company</span>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+
+                                        <div class="modal-body p-4">
+                                            <div class="row g-4">
+                                                <!-- Personal Information -->
+                                                <div class="col-md-6">
+                                                    <div class="p-3 bg-light rounded border h-100">
+                                                        <h6 class="fw-bold text-uppercase text-primary small mb-3 border-bottom pb-2">
+                                                            <i class="fas fa-user me-2"></i>Personal Information
+                                                        </h6>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">FULL NAME</span>
+                                                            <span class="fw-semibold text-dark">{{ employee.user.get_full_name|default:"--" }}</span>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">EMAIL ADDRESS</span>
+                                                            <span class="fw-semibold text-dark">{{ employee.user.email|default:"--" }}</span>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">PHONE NUMBER</span>
+                                                            <span class="fw-semibold text-dark">{{ employee.phone_number|default:"Not Provided" }}</span>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">GENDER</span>
+                                                            <span class="fw-semibold text-dark">{{ employee.gender|default:"Not Provided" }}</span>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">DATE OF BIRTH</span>
+                                                            <span class="fw-semibold text-dark">{{ employee.date_of_birth|date:"d M Y"|default:"Not Provided" }}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span class="text-muted small d-block">ADDRESS</span>
+                                                            <span class="fw-semibold text-dark">{{ employee.address|default:"Not Provided" }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Employment Details -->
+                                                <div class="col-md-6">
+                                                    <div class="p-3 bg-light rounded border h-100">
+                                                        <h6 class="fw-bold text-uppercase text-primary small mb-3 border-bottom pb-2">
+                                                            <i class="fas fa-briefcase me-2"></i>Employment & Job Details
+                                                        </h6>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">EMPLOYEE ID</span>
+                                                            <span class="fw-semibold text-dark">{{ employee.employee_id }}</span>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">DESIGNATION / TITLE</span>
+                                                            <span class="fw-semibold text-dark">{{ employee.designation|default:"Staff" }}</span>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">DEPARTMENT</span>
+                                                            <span class="fw-semibold text-dark">{{ employee.department|default:"General" }}</span>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">DATE OF HIRING</span>
+                                                            <span class="fw-semibold text-dark">{{ employee.date_of_hiring|date:"d M Y"|default:"Not Provided" }}</span>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">PT LOCATION (STATE)</span>
+                                                            <span class="fw-semibold text-dark">{{ employee.pt_location|default:"Not Provided" }}</span>
+                                                        </div>
+                                                        {% if employee.date_of_exit %}
+                                                        <div>
+                                                            <span class="text-muted small d-block text-danger">DATE OF EXIT / LAST DAY</span>
+                                                            <span class="fw-semibold text-danger">{{ employee.date_of_exit|date:"d M Y" }}</span>
+                                                        </div>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+
+                                                <!-- Compensation & Tax Details -->
+                                                <div class="col-md-6">
+                                                    <div class="p-3 bg-light rounded border h-100">
+                                                        <h6 class="fw-bold text-uppercase text-primary small mb-3 border-bottom pb-2">
+                                                            <i class="fas fa-calculator me-2"></i>Compensation & Statutory Taxes
+                                                        </h6>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">MONTHLY SALARY</span>
+                                                            <span class="fw-bold text-success fs-6">₹{{ employee.monthly_salary|floatformat:2 }}</span>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">ANNUAL CTC</span>
+                                                            <span class="fw-semibold text-dark">₹{{ employee.annual_ctc|floatformat:2 }}</span>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">PAN NUMBER</span>
+                                                            <span class="fw-semibold text-dark">{{ employee.pan_number|default:"Not Provided" }}</span>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">PROVIDENT FUND (PF)?</span>
+                                                            <span class="fw-semibold text-dark">{% if employee.provident_fund %}Yes (Y){% else %}No (N){% endif %}</span>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">PF UAN NUMBER</span>
+                                                            <span class="fw-semibold text-dark">{{ employee.pf_uan|default:"Not Provided" }}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span class="text-muted small d-block">ESIC NUMBER</span>
+                                                            <span class="fw-semibold text-dark">{{ employee.esic_number|default:"Not Provided" }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <!-- Bank & FY Tax History -->
+                                                <div class="col-md-6">
+                                                    <div class="p-3 bg-light rounded border h-100">
+                                                        <h6 class="fw-bold text-uppercase text-primary small mb-3 border-bottom pb-2">
+                                                            <i class="fas fa-university me-2"></i>Bank & Financial History
+                                                        </h6>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">BANK ACCOUNT NUMBER</span>
+                                                            <span class="fw-semibold text-dark">{{ employee.bank_account_number|default:"Not Provided" }}</span>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">BANK IFSC CODE</span>
+                                                            <span class="fw-semibold text-dark">{{ employee.bank_ifsc_code|default:"Not Provided" }}</span>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">TAXABLE SALARY PAID (CURRENT F.Y.)</span>
+                                                            <span class="fw-semibold text-dark">₹{{ employee.taxable_salary_current_fy|floatformat:2 }}</span>
+                                                        </div>
+                                                        <div class="mb-2">
+                                                            <span class="text-muted small d-block">TDS DEDUCTED (CURRENT F.Y.)</span>
+                                                            <span class="fw-semibold text-dark">₹{{ employee.tds_deducted_current_fy|floatformat:2 }}</span>
+                                                        </div>
+                                                        <div>
+                                                            <span class="text-muted small d-block">EXEMPTIONS (CURRENT F.Y.)</span>
+                                                            <span class="fw-semibold text-dark">₹{{ employee.exemptions_current_fy|floatformat:2 }}</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="modal-footer bg-light">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
