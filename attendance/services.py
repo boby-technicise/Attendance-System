@@ -20,12 +20,14 @@ def approve_leave(leave_request, reviewed_by=None):
         leave_request.reviewed_by = reviewed_by
     leave_request.save()
 
+    status_to_set = 'HALF_DAY' if leave_request.leave_type == 'HALF_DAY' else 'LEAVE'
+
     current = leave_request.start_date
     while current <= leave_request.end_date:
         Attendance.objects.update_or_create(
             employee=leave_request.employee,
             date=current,
-            defaults={'status': 'LEAVE'}
+            defaults={'status': status_to_set}
         )
         current += timedelta(days=1)
 

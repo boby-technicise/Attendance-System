@@ -143,9 +143,20 @@ class MarkAttendanceView(LoginRequiredMixin, View):
         elif action == 'checkout':
             attendance = Attendance.objects.filter(employee=employee, date=today).first()
             if attendance and not attendance.time_out:
-                attendance.time_out = timezone.localtime().time()
+                now_time = timezone.localtime().time()
+                attendance.time_out = now_time
+                if attendance.time_in:
+                    t_in = datetime.combine(today, attendance.time_in)
+                    t_out = datetime.combine(today, now_time)
+                    if t_out < t_in:
+                        t_out += timedelta(days=1)
+                    hours_worked = (t_out - t_in).total_seconds() / 3600.0
+                    if hours_worked > 6.0:
+                        attendance.status = 'PRESENT'
+                    else:
+                        attendance.status = 'HALF_DAY'
                 attendance.save()
-                messages.success(request, 'Successfully checked out. Have a good day!')
+                messages.success(request, f'Successfully checked out. Working time: {attendance.total_working_hours} ({attendance.get_status_display()}).')
 
         return redirect('mark_attendance')
 

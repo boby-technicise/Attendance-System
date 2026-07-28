@@ -88,6 +88,7 @@ class LeaveRequest(models.Model):
         ('SICK', 'Sick Leave'),
         ('CASUAL', 'Casual Leave'),
         ('EARNED', 'Earned Leave'),
+        ('HALF_DAY', 'Half Day'),
     ]
 
     employee = models.ForeignKey(Employee, on_delete=models.CASCADE, related_name='leave_requests')
@@ -107,6 +108,8 @@ class LeaveRequest(models.Model):
 
     @property
     def duration_days(self):
+        if self.leave_type == 'HALF_DAY':
+            return "0.5 day"
         days = (self.end_date - self.start_date).days + 1
         return f"{days} day{'s' if days > 1 else ''}"
 
