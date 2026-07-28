@@ -13,5 +13,6 @@ urlpatterns = [
     path('employees/upload/', views.BulkUploadEmployeeView.as_view(), name='upload_employees'),
     path('change-password/', views.ChangePasswordView.as_view(), name='change_password'),
     path('employees/<int:user_id>/change-password/', views.AdminChangeUserPasswordView.as_view(), name='admin_change_user_password'),
+    path('employees/<int:user_id>/toggle-active/', views.ToggleUserActiveView.as_view(), name='toggle_user_active'),
 ]
 

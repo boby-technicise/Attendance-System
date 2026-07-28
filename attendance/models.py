@@ -29,6 +29,7 @@ class Employee(models.Model):
     tds_deducted_current_fy = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     past_taxable_salary = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
     past_tds = models.DecimalField(max_digits=12, decimal_places=2, default=0.00)
+    date_of_exit = models.DateField(blank=True, null=True)
 
     def __str__(self):
         name = self.user.get_full_name()

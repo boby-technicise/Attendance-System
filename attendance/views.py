@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.views.generic import TemplateView, ListView, View
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -705,6 +705,41 @@ class AdminChangeUserPasswordView(LoginRequiredMixin, View):
             messages.error(request, 'Target user not found.')
 
         return redirect('employee_list')
+
+
+class ToggleUserActiveView(LoginRequiredMixin, View):
+    def post(self, request, user_id):
+        if not (request.user.is_staff or request.user.is_superuser):
+            messages.error(request, 'Access denied. Admin privileges required.')
+            return redirect('employee_list')
+
+        target_user = get_object_or_404(User, id=user_id)
+        if target_user == request.user:
+            messages.error(request, 'You cannot deactivate your own administrative account.')
+            return redirect('employee_list')
+
+        target_user.is_active = not target_user.is_active
+        target_user.save()
+
+        employee = Employee.objects.filter(user=target_user).first()
+        if employee:
+            if not target_user.is_active:
+                exit_date_str = request.POST.get('date_of_exit')
+                if exit_date_str:
+                    try:
+                        employee.date_of_exit = datetime.strptime(exit_date_str, '%Y-%m-%d').date()
+                    except ValueError:
+                        employee.date_of_exit = timezone.now().date()
+                else:
+                    employee.date_of_exit = timezone.now().date()
+            else:
+                employee.date_of_exit = None
+            employee.save()
+
+        status_label = "deactivated (marked as left)" if not target_user.is_active else "reactivated"
+        messages.success(request, f"Employee {target_user.get_full_name() or target_user.username} account has been {status_label}.")
+        return redirect('employee_list')
+
 
 
 
