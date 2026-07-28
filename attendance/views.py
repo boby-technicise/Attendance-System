@@ -741,5 +741,115 @@ class ToggleUserActiveView(LoginRequiredMixin, View):
         return redirect('employee_list')
 
 
+class EditEmployeeView(LoginRequiredMixin, View):
+    def post(self, request, employee_id):
+        if not (request.user.is_staff or request.user.is_superuser):
+            messages.error(request, 'Access denied. Admin privileges required.')
+            return redirect('employee_list')
+
+        employee = get_object_or_404(Employee, id=employee_id)
+        user = employee.user
+
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip()
+
+        emp_id_input = request.POST.get('employee_id', '').strip()
+        department = request.POST.get('department', '').strip()
+        designation = request.POST.get('designation', '').strip()
+        phone_number = request.POST.get('phone_number', '').strip()
+        address = request.POST.get('address', '').strip()
+
+        pt_location = request.POST.get('pt_location', '').strip()
+        pan_number = request.POST.get('pan_number', '').strip()
+        provident_fund = request.POST.get('provident_fund') in ('true', 'True', 'on', '1')
+        pf_uan = request.POST.get('pf_uan', '').strip()
+        esic_number = request.POST.get('esic_number', '').strip()
+        gender = request.POST.get('gender', '').strip()
+        bank_account_number = request.POST.get('bank_account_number', '').strip()
+        bank_ifsc_code = request.POST.get('bank_ifsc_code', '').strip()
+
+        date_of_hiring_str = request.POST.get('date_of_hiring', '').strip()
+        date_of_birth_str = request.POST.get('date_of_birth', '').strip()
+        date_of_exit_str = request.POST.get('date_of_exit', '').strip()
+
+        annual_ctc_str = request.POST.get('annual_ctc', '').strip()
+        monthly_salary_str = request.POST.get('monthly_salary', '').strip()
+        taxable_fy_str = request.POST.get('taxable_salary_current_fy', '').strip()
+        exemptions_fy_str = request.POST.get('exemptions_current_fy', '').strip()
+        tds_fy_str = request.POST.get('tds_deducted_current_fy', '').strip()
+
+        if emp_id_input and emp_id_input != employee.employee_id:
+            if Employee.objects.filter(employee_id=emp_id_input).exclude(id=employee.id).exists():
+                messages.error(request, f"Employee ID '{emp_id_input}' is already in use by another employee.")
+                return redirect('employee_list')
+            employee.employee_id = emp_id_input
+
+        if first_name:
+            user.first_name = first_name
+        if last_name:
+            user.last_name = last_name
+        if email and email != user.email:
+            if User.objects.filter(email=email).exclude(id=user.id).exists():
+                messages.error(request, f"Email address '{email}' is already registered to another user.")
+                return redirect('employee_list')
+            user.email = email
+            user.username = email
+        user.save()
+
+        def parse_date(d_str):
+            if not d_str:
+                return None
+            try:
+                return datetime.strptime(d_str, '%Y-%m-%d').date()
+            except ValueError:
+                return None
+
+        def parse_dec(v_str, default=0.0):
+            if not v_str:
+                return default
+            try:
+                return float(v_str)
+            except ValueError:
+                return default
+
+        employee.department = department or 'General'
+        employee.designation = designation or 'Staff'
+        employee.phone_number = phone_number or None
+        employee.address = address or None
+
+        annual_ctc = parse_dec(annual_ctc_str, 0.0)
+        employee.annual_ctc = annual_ctc
+        if monthly_salary_str:
+            employee.monthly_salary = parse_dec(monthly_salary_str, 0.0)
+        elif annual_ctc > 0:
+            employee.monthly_salary = round(annual_ctc / 12.0, 2)
+
+        employee.pt_location = pt_location or None
+        employee.pan_number = pan_number or None
+        employee.provident_fund = provident_fund
+        employee.pf_uan = pf_uan or None
+        employee.esic_number = esic_number or None
+        employee.gender = gender or None
+        employee.bank_account_number = bank_account_number or None
+        employee.bank_ifsc_code = bank_ifsc_code or None
+
+        employee.date_of_hiring = parse_date(date_of_hiring_str) if date_of_hiring_str else employee.date_of_hiring
+        employee.date_of_birth = parse_date(date_of_birth_str) if date_of_birth_str else employee.date_of_birth
+        
+        if 'date_of_exit' in request.POST:
+            employee.date_of_exit = parse_date(date_of_exit_str)
+
+        employee.taxable_salary_current_fy = parse_dec(taxable_fy_str)
+        employee.exemptions_current_fy = parse_dec(exemptions_fy_str)
+        employee.tds_deducted_current_fy = parse_dec(tds_fy_str)
+
+        employee.save()
+
+        messages.success(request, f"Employee '{user.get_full_name() or user.username}' updated successfully.")
+        return redirect('employee_list')
+
+
+
 
 

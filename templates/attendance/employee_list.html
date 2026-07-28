@@ -50,7 +50,6 @@
                                 <div>
                                     <h6 class="mb-0 fw-bold text-dark text-primary-hover" style="cursor:pointer;">
                                         {{ employee.user.get_full_name|default:employee.user.username }}
-                                        <i class="fas fa-info-circle ms-1 small text-muted opacity-75"></i>
                                     </h6>
                                     <small class="text-muted">{{ employee.user.email }}</small>
                                 </div>
@@ -79,300 +78,23 @@
                                 <i class="fas fa-eye me-1"></i> Details
                             </button>
 
-                            <button type="button" class="btn btn-sm btn-outline-warning px-2 py-1" data-bs-toggle="modal" data-bs-target="#resetPasswordModal{{ employee.user.id }}" title="Reset Password">
+                            <button type="button" class="btn btn-sm btn-outline-primary px-2 py-1 me-1" data-bs-toggle="modal" data-bs-target="#editEmployeeModal{{ employee.id }}" title="Edit Employee Details">
+                                <i class="fas fa-edit me-1"></i> Edit
+                            </button>
+
+                            <button type="button" class="btn btn-sm btn-outline-warning px-2 py-1 me-1" data-bs-toggle="modal" data-bs-target="#resetPasswordModal{{ employee.user.id }}" title="Reset Password">
                                 <i class="fas fa-key me-1"></i> Reset Password
                             </button>
 
                             {% if employee.user.is_active %}
-                            <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1 ms-1" data-bs-toggle="modal" data-bs-target="#deactivateModal{{ employee.user.id }}" title="Deactivate / Left Company">
+                            <button type="button" class="btn btn-sm btn-outline-danger px-2 py-1" data-bs-toggle="modal" data-bs-target="#deactivateModal{{ employee.user.id }}" title="Deactivate / Left Company">
                                 <i class="fas fa-user-slash me-1"></i> Deactivate
                             </button>
-
-                            <!-- Deactivate Modal -->
-                            <div class="modal fade" id="deactivateModal{{ employee.user.id }}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content text-start">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title fw-bold text-dark">
-                                                <i class="fas fa-user-slash text-danger me-2"></i>Deactivate Account (Left Company)
-                                            </h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <form method="post" action="{% url 'toggle_user_active' user_id=employee.user.id %}">
-                                            {% csrf_token %}
-                                            <div class="modal-body">
-                                                <p class="text-dark mb-2">
-                                                    Are you sure you want to deactivate <strong>{{ employee.user.get_full_name|default:employee.user.username }}</strong> ({{ employee.user.email }})?
-                                                </p>
-                                                <p class="text-muted small mb-3">
-                                                    Deactivating will revoke login access to the portal for this user.
-                                                </p>
-                                                
-                                                <div class="mb-3">
-                                                    <label class="form-label text-dark small fw-semibold">DATE OF EXIT / LAST WORKING DAY</label>
-                                                    <input type="date" name="date_of_exit" class="form-control" value="{% now 'Y-m-d' %}">
-                                                    <small class="text-muted">Defaults to today if left as is.</small>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                <button type="submit" class="btn btn-danger px-4 fw-bold">
-                                                    <i class="fas fa-user-slash me-1"></i> Confirm Deactivation
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
                             {% else %}
-                            <button type="button" class="btn btn-sm btn-outline-success px-2 py-1 ms-1" data-bs-toggle="modal" data-bs-target="#reactivateModal{{ employee.user.id }}" title="Reactivate Account">
+                            <button type="button" class="btn btn-sm btn-outline-success px-2 py-1" data-bs-toggle="modal" data-bs-target="#reactivateModal{{ employee.user.id }}" title="Reactivate Account">
                                 <i class="fas fa-user-check me-1"></i> Reactivate
                             </button>
-
-                            <!-- Reactivate Modal -->
-                            <div class="modal fade" id="reactivateModal{{ employee.user.id }}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content text-start">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title fw-bold text-dark">
-                                                <i class="fas fa-user-check text-success me-2"></i>Reactivate Employee Account
-                                            </h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <form method="post" action="{% url 'toggle_user_active' user_id=employee.user.id %}">
-                                            {% csrf_token %}
-                                            <div class="modal-body">
-                                                <p class="text-dark mb-2">
-                                                    Reactivate login access for <strong>{{ employee.user.get_full_name|default:employee.user.username }}</strong> ({{ employee.user.email }})?
-                                                </p>
-                                                <p class="text-muted small mb-0">
-                                                    This will restore portal access for this employee.
-                                                </p>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                <button type="submit" class="btn btn-success px-4 fw-bold">
-                                                    <i class="fas fa-user-check me-1"></i> Confirm Reactivation
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
                             {% endif %}
-
-                            <!-- Reset Password Modal -->
-                            <div class="modal fade" id="resetPasswordModal{{ employee.user.id }}" tabindex="-1" aria-hidden="true">
-                                <div class="modal-dialog modal-dialog-centered">
-                                    <div class="modal-content text-start">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title fw-bold text-dark">
-                                                <i class="fas fa-user-lock text-warning me-2"></i>Reset Password for {{ employee.user.get_full_name|default:employee.user.username }}
-                                            </h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-                                        <form method="post" action="{% url 'admin_change_user_password' user_id=employee.user.id %}">
-                                            {% csrf_token %}
-                                            <div class="modal-body">
-                                                <p class="text-muted small mb-3">
-                                                    Set a new password for employee account <strong>{{ employee.user.email }}</strong>.
-                                                </p>
-                                                
-                                                <div class="mb-3">
-                                                    <label class="form-label text-dark small fw-semibold">New Password</label>
-                                                    <input type="password" name="new_password" class="form-control" placeholder="Min. 8 characters" required minlength="8">
-                                                </div>
-
-                                                <div class="mb-3">
-                                                    <label class="form-label text-dark small fw-semibold">Confirm Password</label>
-                                                    <input type="password" name="confirm_password" class="form-control" placeholder="Re-enter new password" required minlength="8">
-                                                </div>
-
-                                                <div class="pt-2 border-top mt-3 d-flex justify-content-between align-items-center">
-                                                    <span class="text-muted small">Prefer Django Admin Portal?</span>
-                                                    <a href="/admin/auth/user/{{ employee.user.id }}/password/" target="_blank" class="btn btn-sm btn-outline-info">
-                                                        <i class="fas fa-shield-alt me-1"></i>Open in Admin Portal
-                                                    </a>
-                                                </div>
-                                            </div>
-                                            <div class="modal-footer">
-                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                <button type="submit" class="btn btn-primary px-4">
-                                                    <i class="fas fa-save me-1"></i> Save Password
-                                                </button>
-                                            </div>
-                                        </form>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Full Employee Details Modal -->
-                            <div class="modal fade" id="employeeDetailsModal{{ employee.user.id }}" tabindex="-1" aria-labelledby="empModalLabel{{ employee.user.id }}" aria-hidden="true">
-                                <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-                                    <div class="modal-content text-start border-0 shadow">
-                                        <div class="modal-header bg-light border-bottom">
-                                            <div class="d-flex align-items-center gap-3">
-                                                <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-4" style="width: 48px; height: 48px;">
-                                                    {{ employee.user.first_name|make_list|first|upper|default:employee.user.username|make_list|first|upper }}
-                                                </div>
-                                                <div>
-                                                    <h5 class="modal-title fw-bold text-dark mb-0" id="empModalLabel{{ employee.user.id }}">
-                                                        {{ employee.user.get_full_name|default:employee.user.username }}
-                                                    </h5>
-                                                    <div class="d-flex align-items-center gap-2 mt-1">
-                                                        <span class="badge bg-secondary bg-opacity-25 text-dark fw-normal">{{ employee.employee_id }}</span>
-                                                        <span class="badge bg-primary bg-opacity-10 text-primary fw-normal">{{ employee.designation }}</span>
-                                                        {% if employee.user.is_active %}
-                                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25"><i class="fas fa-check-circle me-1"></i>Active</span>
-                                                        {% else %}
-                                                        <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25"><i class="fas fa-user-slash me-1"></i>Left Company</span>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                        </div>
-
-                                        <div class="modal-body p-4">
-                                            <div class="row g-4">
-                                                <!-- Personal Information -->
-                                                <div class="col-md-6">
-                                                    <div class="p-3 bg-light rounded border h-100">
-                                                        <h6 class="fw-bold text-uppercase text-primary small mb-3 border-bottom pb-2">
-                                                            <i class="fas fa-user me-2"></i>Personal Information
-                                                        </h6>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">FULL NAME</span>
-                                                            <span class="fw-semibold text-dark">{{ employee.user.get_full_name|default:"--" }}</span>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">EMAIL ADDRESS</span>
-                                                            <span class="fw-semibold text-dark">{{ employee.user.email|default:"--" }}</span>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">PHONE NUMBER</span>
-                                                            <span class="fw-semibold text-dark">{{ employee.phone_number|default:"Not Provided" }}</span>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">GENDER</span>
-                                                            <span class="fw-semibold text-dark">{{ employee.gender|default:"Not Provided" }}</span>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">DATE OF BIRTH</span>
-                                                            <span class="fw-semibold text-dark">{{ employee.date_of_birth|date:"d M Y"|default:"Not Provided" }}</span>
-                                                        </div>
-                                                        <div>
-                                                            <span class="text-muted small d-block">ADDRESS</span>
-                                                            <span class="fw-semibold text-dark">{{ employee.address|default:"Not Provided" }}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Employment Details -->
-                                                <div class="col-md-6">
-                                                    <div class="p-3 bg-light rounded border h-100">
-                                                        <h6 class="fw-bold text-uppercase text-primary small mb-3 border-bottom pb-2">
-                                                            <i class="fas fa-briefcase me-2"></i>Employment & Job Details
-                                                        </h6>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">EMPLOYEE ID</span>
-                                                            <span class="fw-semibold text-dark">{{ employee.employee_id }}</span>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">DESIGNATION / TITLE</span>
-                                                            <span class="fw-semibold text-dark">{{ employee.designation|default:"Staff" }}</span>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">DEPARTMENT</span>
-                                                            <span class="fw-semibold text-dark">{{ employee.department|default:"General" }}</span>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">DATE OF HIRING</span>
-                                                            <span class="fw-semibold text-dark">{{ employee.date_of_hiring|date:"d M Y"|default:"Not Provided" }}</span>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">PT LOCATION (STATE)</span>
-                                                            <span class="fw-semibold text-dark">{{ employee.pt_location|default:"Not Provided" }}</span>
-                                                        </div>
-                                                        {% if employee.date_of_exit %}
-                                                        <div>
-                                                            <span class="text-muted small d-block text-danger">DATE OF EXIT / LAST DAY</span>
-                                                            <span class="fw-semibold text-danger">{{ employee.date_of_exit|date:"d M Y" }}</span>
-                                                        </div>
-                                                        {% endif %}
-                                                    </div>
-                                                </div>
-
-                                                <!-- Compensation & Tax Details -->
-                                                <div class="col-md-6">
-                                                    <div class="p-3 bg-light rounded border h-100">
-                                                        <h6 class="fw-bold text-uppercase text-primary small mb-3 border-bottom pb-2">
-                                                            <i class="fas fa-calculator me-2"></i>Compensation & Statutory Taxes
-                                                        </h6>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">MONTHLY SALARY</span>
-                                                            <span class="fw-bold text-success fs-6">₹{{ employee.monthly_salary|floatformat:2 }}</span>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">ANNUAL CTC</span>
-                                                            <span class="fw-semibold text-dark">₹{{ employee.annual_ctc|floatformat:2 }}</span>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">PAN NUMBER</span>
-                                                            <span class="fw-semibold text-dark">{{ employee.pan_number|default:"Not Provided" }}</span>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">PROVIDENT FUND (PF)?</span>
-                                                            <span class="fw-semibold text-dark">{% if employee.provident_fund %}Yes (Y){% else %}No (N){% endif %}</span>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">PF UAN NUMBER</span>
-                                                            <span class="fw-semibold text-dark">{{ employee.pf_uan|default:"Not Provided" }}</span>
-                                                        </div>
-                                                        <div>
-                                                            <span class="text-muted small d-block">ESIC NUMBER</span>
-                                                            <span class="fw-semibold text-dark">{{ employee.esic_number|default:"Not Provided" }}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Bank & FY Tax History -->
-                                                <div class="col-md-6">
-                                                    <div class="p-3 bg-light rounded border h-100">
-                                                        <h6 class="fw-bold text-uppercase text-primary small mb-3 border-bottom pb-2">
-                                                            <i class="fas fa-university me-2"></i>Bank & Financial History
-                                                        </h6>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">BANK ACCOUNT NUMBER</span>
-                                                            <span class="fw-semibold text-dark">{{ employee.bank_account_number|default:"Not Provided" }}</span>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">BANK IFSC CODE</span>
-                                                            <span class="fw-semibold text-dark">{{ employee.bank_ifsc_code|default:"Not Provided" }}</span>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">TAXABLE SALARY PAID (CURRENT F.Y.)</span>
-                                                            <span class="fw-semibold text-dark">₹{{ employee.taxable_salary_current_fy|floatformat:2 }}</span>
-                                                        </div>
-                                                        <div class="mb-2">
-                                                            <span class="text-muted small d-block">TDS DEDUCTED (CURRENT F.Y.)</span>
-                                                            <span class="fw-semibold text-dark">₹{{ employee.tds_deducted_current_fy|floatformat:2 }}</span>
-                                                        </div>
-                                                        <div>
-                                                            <span class="text-muted small d-block">EXEMPTIONS (CURRENT F.Y.)</span>
-                                                            <span class="fw-semibold text-dark">₹{{ employee.exemptions_current_fy|floatformat:2 }}</span>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div class="modal-footer bg-light">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
                         </td>
                         {% endif %}
                     </tr>
@@ -389,4 +111,482 @@
         </div>
     </div>
 </div>
+
+<!-- All Modals placed outside the table container for clean DOM structure, crisp white opacity, and flawless z-indexing -->
+{% for employee in employees %}
+    {% if user.is_staff or user.is_superuser %}
+        <!-- Deactivate Modal -->
+        <div class="modal fade" id="deactivateModal{{ employee.user.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content text-start border-0 shadow-lg bg-white">
+                    <div class="modal-header bg-danger text-white">
+                        <h5 class="modal-title fw-bold">
+                            <i class="fas fa-user-slash me-2"></i>Deactivate Account (Left Company)
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="post" action="{% url 'toggle_user_active' user_id=employee.user.id %}">
+                        {% csrf_token %}
+                        <div class="modal-body p-4 bg-white">
+                            <p class="text-dark mb-2">
+                                Are you sure you want to deactivate <strong>{{ employee.user.get_full_name|default:employee.user.username }}</strong> ({{ employee.user.email }})?
+                            </p>
+                            <p class="text-muted small mb-3">
+                                Deactivating will revoke login access to the portal for this user.
+                            </p>
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-dark small fw-semibold">DATE OF EXIT / LAST WORKING DAY</label>
+                                <input type="date" name="date_of_exit" class="form-control" value="{% now 'Y-m-d' %}">
+                                <small class="text-muted">Defaults to today if left as is.</small>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-danger px-4 fw-bold">
+                                <i class="fas fa-user-slash me-1"></i> Confirm Deactivation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reactivate Modal -->
+        <div class="modal fade" id="reactivateModal{{ employee.user.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content text-start border-0 shadow-lg bg-white">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title fw-bold">
+                            <i class="fas fa-user-check me-2"></i>Reactivate Employee Account
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="post" action="{% url 'toggle_user_active' user_id=employee.user.id %}">
+                        {% csrf_token %}
+                        <div class="modal-body p-4 bg-white">
+                            <p class="text-dark mb-2">
+                                Reactivate login access for <strong>{{ employee.user.get_full_name|default:employee.user.username }}</strong> ({{ employee.user.email }})?
+                            </p>
+                            <p class="text-muted small mb-0">
+                                This will restore portal access for this employee and clear their departure status.
+                            </p>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-success px-4 fw-bold">
+                                <i class="fas fa-user-check me-1"></i> Confirm Reactivation
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reset Password Modal -->
+        <div class="modal fade" id="resetPasswordModal{{ employee.user.id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content text-start border-0 shadow-lg bg-white">
+                    <div class="modal-header bg-warning text-dark">
+                        <h5 class="modal-title fw-bold">
+                            <i class="fas fa-user-lock me-2"></i>Reset Password for {{ employee.user.get_full_name|default:employee.user.username }}
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="post" action="{% url 'admin_change_user_password' user_id=employee.user.id %}">
+                        {% csrf_token %}
+                        <div class="modal-body p-4 bg-white">
+                            <p class="text-muted small mb-3">
+                                Set a new password for employee account <strong>{{ employee.user.email }}</strong>.
+                            </p>
+                            
+                            <div class="mb-3">
+                                <label class="form-label text-dark small fw-semibold">New Password</label>
+                                <input type="password" name="new_password" class="form-control" placeholder="Min. 8 characters" required minlength="8">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label text-dark small fw-semibold">Confirm Password</label>
+                                <input type="password" name="confirm_password" class="form-control" placeholder="Re-enter new password" required minlength="8">
+                            </div>
+
+                            <div class="pt-2 border-top mt-3 d-flex justify-content-between align-items-center">
+                                <span class="text-muted small">Prefer Django Admin Portal?</span>
+                                <a href="/admin/auth/user/{{ employee.user.id }}/password/" target="_blank" class="btn btn-sm btn-outline-info">
+                                    <i class="fas fa-shield-alt me-1"></i>Open in Admin Portal
+                                </a>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4">
+                                <i class="fas fa-save me-1"></i> Save Password
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Full Employee Details Modal -->
+        <div class="modal fade" id="employeeDetailsModal{{ employee.user.id }}" tabindex="-1" aria-labelledby="empModalLabel{{ employee.user.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content text-start border-0 shadow-lg bg-white">
+                    <div class="modal-header bg-light border-bottom">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold fs-4" style="width: 48px; height: 48px;">
+                                {{ employee.user.first_name|make_list|first|upper|default:employee.user.username|make_list|first|upper }}
+                            </div>
+                            <div>
+                                <h5 class="modal-title fw-bold text-dark mb-0" id="empModalLabel{{ employee.user.id }}">
+                                    {{ employee.user.get_full_name|default:employee.user.username }}
+                                </h5>
+                                <div class="d-flex align-items-center gap-2 mt-1">
+                                    <span class="badge bg-secondary bg-opacity-25 text-dark fw-normal">{{ employee.employee_id }}</span>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary fw-normal">{{ employee.designation }}</span>
+                                    {% if employee.user.is_active %}
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25"><i class="fas fa-check-circle me-1"></i>Active</span>
+                                    {% else %}
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25"><i class="fas fa-user-slash me-1"></i>Left Company</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+
+                    <div class="modal-body p-4 bg-white">
+                        <div class="row g-4">
+                            <!-- Personal Information -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded border h-100">
+                                    <h6 class="fw-bold text-uppercase text-primary small mb-3 border-bottom pb-2">
+                                        <i class="fas fa-user me-2"></i>Personal Information
+                                    </h6>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">FULL NAME</span>
+                                        <span class="fw-semibold text-dark">{{ employee.user.get_full_name|default:"--" }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">EMAIL ADDRESS</span>
+                                        <span class="fw-semibold text-dark">{{ employee.user.email|default:"--" }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">PHONE NUMBER</span>
+                                        <span class="fw-semibold text-dark">{{ employee.phone_number|default:"Not Provided" }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">GENDER</span>
+                                        <span class="fw-semibold text-dark">{{ employee.gender|default:"Not Provided" }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">DATE OF BIRTH</span>
+                                        <span class="fw-semibold text-dark">{{ employee.date_of_birth|date:"d M Y"|default:"Not Provided" }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted small d-block">ADDRESS</span>
+                                        <span class="fw-semibold text-dark">{{ employee.address|default:"Not Provided" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Employment Details -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded border h-100">
+                                    <h6 class="fw-bold text-uppercase text-primary small mb-3 border-bottom pb-2">
+                                        <i class="fas fa-briefcase me-2"></i>Employment & Job Details
+                                    </h6>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">EMPLOYEE ID</span>
+                                        <span class="fw-semibold text-dark">{{ employee.employee_id }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">DESIGNATION / TITLE</span>
+                                        <span class="fw-semibold text-dark">{{ employee.designation|default:"Staff" }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">DEPARTMENT</span>
+                                        <span class="fw-semibold text-dark">{{ employee.department|default:"General" }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">DATE OF HIRING</span>
+                                        <span class="fw-semibold text-dark">{{ employee.date_of_hiring|date:"d M Y"|default:"Not Provided" }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">PT LOCATION (STATE)</span>
+                                        <span class="fw-semibold text-dark">{{ employee.pt_location|default:"Not Provided" }}</span>
+                                    </div>
+                                    {% if employee.date_of_exit %}
+                                    <div>
+                                        <span class="text-muted small d-block text-danger">DATE OF EXIT / LAST DAY</span>
+                                        <span class="fw-semibold text-danger">{{ employee.date_of_exit|date:"d M Y" }}</span>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Compensation & Tax Details -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded border h-100">
+                                    <h6 class="fw-bold text-uppercase text-primary small mb-3 border-bottom pb-2">
+                                        <i class="fas fa-calculator me-2"></i>Compensation & Statutory Taxes
+                                    </h6>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">MONTHLY SALARY</span>
+                                        <span class="fw-bold text-success fs-6">₹{{ employee.monthly_salary|floatformat:2 }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">ANNUAL CTC</span>
+                                        <span class="fw-semibold text-dark">₹{{ employee.annual_ctc|floatformat:2 }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">PAN NUMBER</span>
+                                        <span class="fw-semibold text-dark">{{ employee.pan_number|default:"Not Provided" }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">PROVIDENT FUND (PF)?</span>
+                                        <span class="fw-semibold text-dark">{% if employee.provident_fund %}Yes (Y){% else %}No (N){% endif %}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">PF UAN NUMBER</span>
+                                        <span class="fw-semibold text-dark">{{ employee.pf_uan|default:"Not Provided" }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted small d-block">ESIC NUMBER</span>
+                                        <span class="fw-semibold text-dark">{{ employee.esic_number|default:"Not Provided" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bank & FY Tax History -->
+                            <div class="col-md-6">
+                                <div class="p-3 bg-light rounded border h-100">
+                                    <h6 class="fw-bold text-uppercase text-primary small mb-3 border-bottom pb-2">
+                                        <i class="fas fa-university me-2"></i>Bank & Financial History
+                                    </h6>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">BANK ACCOUNT NUMBER</span>
+                                        <span class="fw-semibold text-dark">{{ employee.bank_account_number|default:"Not Provided" }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">BANK IFSC CODE</span>
+                                        <span class="fw-semibold text-dark">{{ employee.bank_ifsc_code|default:"Not Provided" }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">TAXABLE SALARY PAID (CURRENT F.Y.)</span>
+                                        <span class="fw-semibold text-dark">₹{{ employee.taxable_salary_current_fy|floatformat:2 }}</span>
+                                    </div>
+                                    <div class="mb-2">
+                                        <span class="text-muted small d-block">TDS DEDUCTED (CURRENT F.Y.)</span>
+                                        <span class="fw-semibold text-dark">₹{{ employee.tds_deducted_current_fy|floatformat:2 }}</span>
+                                    </div>
+                                    <div>
+                                        <span class="text-muted small d-block">EXEMPTIONS (CURRENT F.Y.)</span>
+                                        <span class="fw-semibold text-dark">₹{{ employee.exemptions_current_fy|floatformat:2 }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="modal-footer bg-light justify-content-between">
+                        <div>
+                            <button type="button" class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#editEmployeeModal{{ employee.id }}" data-bs-dismiss="modal">
+                                <i class="fas fa-edit me-1"></i> Edit Details
+                            </button>
+                            {% if employee.user.is_active %}
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#deactivateModal{{ employee.user.id }}" data-bs-dismiss="modal">
+                                <i class="fas fa-user-slash me-1"></i> Deactivate
+                            </button>
+                            {% else %}
+                            <button type="button" class="btn btn-outline-success" data-bs-toggle="modal" data-bs-target="#reactivateModal{{ employee.user.id }}" data-bs-dismiss="modal">
+                                <i class="fas fa-user-check me-1"></i> Reactivate Account
+                            </button>
+                            {% endif %}
+                        </div>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Edit Employee Modal -->
+        <div class="modal fade" id="editEmployeeModal{{ employee.id }}" tabindex="-1" aria-labelledby="editModalLabel{{ employee.id }}" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content text-start border-0 shadow-lg bg-white">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title fw-bold" id="editModalLabel{{ employee.id }}">
+                            <i class="fas fa-user-edit me-2"></i>Edit Employee Profile - {{ employee.user.get_full_name|default:employee.user.username }}
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="post" action="{% url 'edit_employee' employee_id=employee.id %}">
+                        {% csrf_token %}
+                        <div class="modal-body p-4 bg-white">
+                            <!-- Nav Tabs for organized editing -->
+                            <ul class="nav nav-pills mb-4 nav-justified bg-light p-1 rounded border" id="editTab{{ employee.id }}" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active small fw-bold" id="p-tab{{ employee.id }}" data-bs-toggle="tab" data-bs-target="#personal{{ employee.id }}" type="button" role="tab">
+                                        <i class="fas fa-user me-1"></i> Personal
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link small fw-bold" id="j-tab{{ employee.id }}" data-bs-toggle="tab" data-bs-target="#job{{ employee.id }}" type="button" role="tab">
+                                        <i class="fas fa-briefcase me-1"></i> Job
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link small fw-bold" id="s-tab{{ employee.id }}" data-bs-toggle="tab" data-bs-target="#salary{{ employee.id }}" type="button" role="tab">
+                                        <i class="fas fa-calculator me-1"></i> Compensation
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link small fw-bold" id="b-tab{{ employee.id }}" data-bs-toggle="tab" data-bs-target="#bank{{ employee.id }}" type="button" role="tab">
+                                        <i class="fas fa-university me-1"></i> Bank & Tax
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <div class="tab-content" id="editTabContent{{ employee.id }}">
+                                <!-- Tab 1: Personal -->
+                                <div class="tab-pane fade show active" id="personal{{ employee.id }}" role="tabpanel">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">First Name</label>
+                                            <input type="text" name="first_name" class="form-control" value="{{ employee.user.first_name }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">Last Name</label>
+                                            <input type="text" name="last_name" class="form-control" value="{{ employee.user.last_name }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">Email Address</label>
+                                            <input type="email" name="email" class="form-control" value="{{ employee.user.email }}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">Phone Number</label>
+                                            <input type="text" name="phone_number" class="form-control" value="{{ employee.phone_number|default:'' }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">Gender</label>
+                                            <select name="gender" class="form-select">
+                                                <option value="">Select Gender</option>
+                                                <option value="Male" {% if employee.gender == 'Male' or employee.gender == 'M' %}selected{% endif %}>Male</option>
+                                                <option value="Female" {% if employee.gender == 'Female' or employee.gender == 'F' %}selected{% endif %}>Female</option>
+                                                <option value="Other" {% if employee.gender == 'Other' %}selected{% endif %}>Other</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">Date of Birth</label>
+                                            <input type="date" name="date_of_birth" class="form-control" value="{{ employee.date_of_birth|date:'Y-m-d' }}">
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label text-dark small fw-semibold">Address</label>
+                                            <textarea name="address" class="form-control" rows="2">{{ employee.address|default:'' }}</textarea>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tab 2: Job -->
+                                <div class="tab-pane fade" id="job{{ employee.id }}" role="tabpanel">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">Employee ID</label>
+                                            <input type="text" name="employee_id" class="form-control" value="{{ employee.employee_id }}" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">Department</label>
+                                            <input type="text" name="department" class="form-control" value="{{ employee.department }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">Designation / Title</label>
+                                            <input type="text" name="designation" class="form-control" value="{{ employee.designation }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">Date of Hiring</label>
+                                            <input type="date" name="date_of_hiring" class="form-control" value="{{ employee.date_of_hiring|date:'Y-m-d' }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">PT Location (State)</label>
+                                            <input type="text" name="pt_location" class="form-control" value="{{ employee.pt_location|default:'' }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">Date of Exit (If Left Company)</label>
+                                            <input type="date" name="date_of_exit" class="form-control" value="{{ employee.date_of_exit|date:'Y-m-d' }}">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tab 3: Compensation -->
+                                <div class="tab-pane fade" id="salary{{ employee.id }}" role="tabpanel">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">Annual CTC (₹)</label>
+                                            <input type="number" step="0.01" name="annual_ctc" class="form-control" value="{{ employee.annual_ctc }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">Monthly Salary (₹)</label>
+                                            <input type="number" step="0.01" name="monthly_salary" class="form-control" value="{{ employee.monthly_salary }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">PAN Number</label>
+                                            <input type="text" name="pan_number" class="form-control" value="{{ employee.pan_number|default:'' }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">Provident Fund (PF)?</label>
+                                            <select name="provident_fund" class="form-select">
+                                                <option value="true" {% if employee.provident_fund %}selected{% endif %}>Yes (Y)</option>
+                                                <option value="false" {% if not employee.provident_fund %}selected{% endif %}>No (N)</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">PF UAN Number</label>
+                                            <input type="text" name="pf_uan" class="form-control" value="{{ employee.pf_uan|default:'' }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">ESIC Number</label>
+                                            <input type="text" name="esic_number" class="form-control" value="{{ employee.esic_number|default:'' }}">
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Tab 4: Bank & Tax -->
+                                <div class="tab-pane fade" id="bank{{ employee.id }}" role="tabpanel">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">Bank Account Number</label>
+                                            <input type="text" name="bank_account_number" class="form-control" value="{{ employee.bank_account_number|default:'' }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label text-dark small fw-semibold">Bank IFSC Code</label>
+                                            <input type="text" name="bank_ifsc_code" class="form-control" value="{{ employee.bank_ifsc_code|default:'' }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label text-dark small fw-semibold">Taxable Salary (Current F.Y.)</label>
+                                            <input type="number" step="0.01" name="taxable_salary_current_fy" class="form-control" value="{{ employee.taxable_salary_current_fy }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label text-dark small fw-semibold">Exemptions (Current F.Y.)</label>
+                                            <input type="number" step="0.01" name="exemptions_current_fy" class="form-control" value="{{ employee.exemptions_current_fy }}">
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label text-dark small fw-semibold">TDS Deducted (Current F.Y.)</label>
+                                            <input type="number" step="0.01" name="tds_deducted_current_fy" class="form-control" value="{{ employee.tds_deducted_current_fy }}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-light">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary px-4 fw-bold">
+                                <i class="fas fa-save me-1"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}
 {% endblock %}
