@@ -388,11 +388,11 @@
                         </span>
                         {% endif %}
                     </li>
-                    <li>
+                    <!-- <li>
                         <a href="{% url 'change_password' %}" class="dropdown-item py-2 text-white rounded-3 mb-1">
                             <i class="fas fa-key me-2 text-info"></i>Change Password
                         </a>
-                    </li>
+                    </li> -->
                     <li>
                         <form action="{% url 'logout' %}" method="post">
                             {% csrf_token %}
