@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponse
 from django.views.generic import TemplateView, ListView, View
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -11,6 +12,7 @@ from .services import calculate_monthly_salary, approve_leave, reject_leave
 from django.contrib import messages
 from datetime import datetime, date, timedelta
 import calendar
+import openpyxl
 
 
 def get_or_create_employee(user):
@@ -252,19 +254,25 @@ class AttendanceReportView(LoginRequiredMixin, ListView):
         if not (self.request.user.is_staff or self.request.user.is_superuser):
             queryset = queryset.filter(employee__user=self.request.user)
 
-        month = self.request.GET.get('month')
-        employee_id = self.request.GET.get('employee')
+        report_type = self.request.GET.get('report_type', 'daily')
+        today = timezone.localtime().date()
 
-        if month:
+        if report_type == 'daily':
+            selected_date_str = self.request.GET.get('date', today.strftime('%Y-%m-%d'))
+            try:
+                selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+                queryset = queryset.filter(date=selected_date)
+            except ValueError:
+                queryset = queryset.filter(date=today)
+        else:
+            month = self.request.GET.get('month', today.strftime('%Y-%m'))
             try:
                 year, m = month.split('-')
                 queryset = queryset.filter(date__year=year, date__month=m)
             except ValueError:
-                pass
-        else:
-            today = timezone.localtime().date()
-            queryset = queryset.filter(date__year=today.year, date__month=today.month)
+                queryset = queryset.filter(date__year=today.year, date__month=today.month)
 
+        employee_id = self.request.GET.get('employee')
         if employee_id and (self.request.user.is_staff or self.request.user.is_superuser):
             queryset = queryset.filter(employee__id=employee_id)
 
@@ -274,6 +282,10 @@ class AttendanceReportView(LoginRequiredMixin, ListView):
         context = super().get_context_data(**kwargs)
         context['employees'] = Employee.objects.select_related('user').all().order_by('employee_id')
         today = timezone.localtime().date()
+        
+        report_type = self.request.GET.get('report_type', 'daily')
+        context['report_type'] = report_type
+        context['selected_date'] = self.request.GET.get('date', today.strftime('%Y-%m-%d'))
         context['selected_month'] = self.request.GET.get('month', today.strftime('%Y-%m'))
         context['selected_employee'] = self.request.GET.get('employee', '')
         
@@ -293,26 +305,39 @@ class ExportAttendanceReportView(LoginRequiredMixin, View):
         if not (request.user.is_staff or request.user.is_superuser):
             queryset = queryset.filter(employee__user=request.user)
 
-        month = request.GET.get('month')
-        employee_id = request.GET.get('employee')
+        report_type = request.GET.get('report_type', 'daily')
+        today = timezone.localtime().date()
 
-        if month:
+        if report_type == 'daily':
+            selected_date_str = request.GET.get('date', today.strftime('%Y-%m-%d'))
+            try:
+                selected_date = datetime.strptime(selected_date_str, '%Y-%m-%d').date()
+                queryset = queryset.filter(date=selected_date)
+                period_label = selected_date.strftime('%Y-%m-%d')
+            except ValueError:
+                queryset = queryset.filter(date=today)
+                period_label = today.strftime('%Y-%m-%d')
+            sheet_title = f"Daily Report ({period_label})"
+            filename = f"Daily_Attendance_Report_{period_label}.xlsx"
+        else:
+            month = request.GET.get('month', today.strftime('%Y-%m'))
             try:
                 year, m = month.split('-')
                 queryset = queryset.filter(date__year=year, date__month=m)
+                period_label = month
             except ValueError:
-                pass
-        else:
-            today = timezone.localtime().date()
-            queryset = queryset.filter(date__year=today.year, date__month=today.month)
-            month = today.strftime('%Y-%m')
+                queryset = queryset.filter(date__year=today.year, date__month=today.month)
+                period_label = today.strftime('%Y-%m')
+            sheet_title = f"Monthly Report ({period_label})"
+            filename = f"Monthly_Attendance_Report_{period_label}.xlsx"
 
+        employee_id = request.GET.get('employee')
         if employee_id and (request.user.is_staff or request.user.is_superuser):
             queryset = queryset.filter(employee__id=employee_id)
 
         wb = openpyxl.Workbook()
         ws = wb.active
-        ws.title = "Monthly Attendance Report"
+        ws.title = sheet_title[:31]
 
         headers = [
             'Sl No', 'Date', 'Employee ID', 'Employee Name', 'Department',
@@ -340,7 +365,6 @@ class ExportAttendanceReportView(LoginRequiredMixin, View):
             ws.append(row)
 
         response = HttpResponse(content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        filename = f"Monthly_Attendance_Report_{month}.xlsx"
         response['Content-Disposition'] = f'attachment; filename="{filename}"'
         wb.save(response)
         return response
